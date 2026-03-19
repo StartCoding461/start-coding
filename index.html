@@ -2,10 +2,76 @@
 <html>
 <head>
     <title>Start Coding</title>
+    <meta charset="UTF-8">
 </head>
 
-<body style="background:black;color:white;text-align:center;">
-    <h1>💻 Start Coding</h1>
-    <p>Bienvenue sur ton site 🚀</p>
+<body style="margin:0;background:black;color:white;font-family:Arial;">
+
+<!-- MENU -->
+<div style="position:fixed;left:0;top:0;width:220px;height:100%;background:#111;padding:20px;">
+    <h2>📂 Menu</h2>
+    <p><a href="#debutant" style="color:white;text-decoration:none;">🔰 Débutant</a></p>
+    <p><a href="#amateur" style="color:white;text-decoration:none;">⚙️ Amateur</a></p>
+    <p><a href="#pro" style="color:white;text-decoration:none;">🚀 Professionnel</a></p>
+</div>
+
+<!-- CONTENU -->
+<div style="margin-left:240px;padding:20px;">
+
+<h1>💻 Start Coding</h1>
+<p>Bienvenue sur ton site 🚀</p>
+
+<!-- DEBUTANT -->
+<h2 id="debutant">🔰 Débutant (codes gratuits)</h2>
+
+<h3>Code 1</h3>
+<pre id="code1">print("Bonjour monde")</pre>
+<button onclick="copyText('code1')">Copier</button>
+
+<h3>Code 2</h3>
+<pre id="code4">
+nom = input("Ton nom: ")
+print("Bonjour", nom)
+</pre>
+<button onclick="copyText('code4')">Copier</button>
+
+<br><br>
+
+<!-- AMATEUR -->
+<h2 id="amateur">⚙️ Amateur</h2>
+<p>💰 Code premium (5€)</p>
+
+<pre id="code2">
+for i in range(5):
+    print(i)
+</pre>
+<button onclick="copyText('code2')">Copier</button>
+
+<br><br>
+
+<!-- PRO -->
+<h2 id="pro">🚀 Professionnel</h2>
+<p>💰 Code premium (20€)</p>
+
+<pre id="code3">
+def fibonacci(n):
+    a, b = 0, 1
+    for _ in range(n):
+        print(a)
+        a, b = b, a + b
+</pre>
+<button onclick="copyText('code3')">Copier</button>
+
+</div>
+
+<!-- SCRIPT -->
+<script>
+function copyText(id) {
+    var text = document.getElementById(id).innerText;
+    navigator.clipboard.writeText(text);
+    alert("✅ Code copié !");
+}
+</script>
+
 </body>
 </html>
