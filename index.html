@@ -1,225 +1,241 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Start Coding - ULTRA</title>
+<title>Start Coding - Game Hub</title>
 
 <style>
 body {
   margin:0;
   font-family:Arial;
-  background: radial-gradient(circle, #1a2a3a, #0f2027);
+  background:#111;
   color:white;
   text-align:center;
 }
 
-#menu {
-  padding-top:100px;
+.menu {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:20px;
+  padding:20px;
 }
 
-button {
-  padding:15px;
-  font-size:20px;
-  margin:10px;
-  background:lime;
-  border:none;
+.card {
+  background:#222;
+  padding:20px;
+  cursor:pointer;
+  border-radius:10px;
 }
 
 canvas {
   display:none;
+  border:3px solid lime;
   background:black;
-  border:4px solid lime;
-  touch-action:none;
 }
 </style>
 </head>
 
 <body>
 
-<div id="menu">
-  <h1>🎮 Start Coding</h1>
-  <p>Like slither.io 🐍</p>
-  <button onclick="startGame()">▶ Play</button>
+<h1>🎮 Start Coding</h1>
+
+<div class="menu" id="menu">
+  <div class="card" onclick="snakeGame()">🐍 Snake.io</div>
+  <div class="card" onclick="clickGame()">🖱 Click Game</div>
+  <div class="card" onclick="dodgeGame()">⚡ Dodge</div>
+  <div class="card" onclick="runnerGame()">🏃 Runner</div>
 </div>
 
-<canvas id="game" width="1200" height="800"></canvas>
+<canvas id="game" width="900" height="600"></canvas>
 <br>
-<button id="quitBtn" onclick="quitGame()" style="display:none;">❌ Quit</button>
+<button onclick="back()">⬅ Back</button>
 
 <script>
-let canvas = document.getElementById("game");
-let ctx = canvas.getContext("2d");
+let canvas=document.getElementById("game");
+let ctx=canvas.getContext("2d");
+let loop;
 
-let player, bots, food;
-let running=false;
-let targetX=600,targetY=400;
-let boosting=false;
-
-let eatSound=new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
-
-function init(){
-player={x:600,y:400,size:15,trail:[]};
-
-bots=[];
-for(let i=0;i<6;i++){
-bots.push({
-x:Math.random()*1200,
-y:Math.random()*800,
-size:15,
-trail:[]
-});
+/* MENU */
+function showGame(){
+  document.getElementById("menu").style.display="none";
+  canvas.style.display="block";
+}
+function back(){
+  clearInterval(loop);
+  location.reload();
 }
 
-food=[];
-for(let i=0;i<80;i++){
-food.push({x:Math.random()*1200,y:Math.random()*800});
-}
-}
+/* 🐍 SNAKE AVEC KILL + LOOT */
+function snakeGame(){
+  showGame();
 
-function startGame(){
-document.getElementById("menu").style.display="none";
-canvas.style.display="block";
-document.getElementById("quitBtn").style.display="inline";
-running=true;
-init();
-}
+  let player={x:400,y:300,size:10,trail:[]};
+  let bots=[];
+  let food=[];
 
-function quitGame(){
-running=false;
-canvas.style.display="none";
-document.getElementById("quitBtn").style.display="none";
-document.getElementById("menu").style.display="block";
-}
+  for(let i=0;i<5;i++){
+    bots.push({x:Math.random()*900,y:Math.random()*600,size:10,trail:[]});
+  }
 
-/* 🖱 souris */
-canvas.addEventListener("mousemove",e=>{
-let r=canvas.getBoundingClientRect();
-targetX=e.clientX-r.left;
-targetY=e.clientY-r.top;
-});
+  for(let i=0;i<30;i++){
+    food.push({x:Math.random()*900,y:Math.random()*600});
+  }
 
-/* 📱 tactile */
-canvas.addEventListener("touchmove",e=>{
-let r=canvas.getBoundingClientRect();
-targetX=e.touches[0].clientX-r.left;
-targetY=e.touches[0].clientY-r.top;
-});
+  document.onmousemove=e=>{
+    player.x=e.offsetX;
+    player.y=e.offsetY;
+  };
 
-/* ⚡ boost */
-canvas.addEventListener("mousedown",()=>boosting=true);
-canvas.addEventListener("mouseup",()=>boosting=false);
-canvas.addEventListener("touchstart",()=>boosting=true);
-canvas.addEventListener("touchend",()=>boosting=false);
+  loop=setInterval(()=>{
+    ctx.clearRect(0,0,900,600);
 
-/* 🐍 mouvement joueur */
-function movePlayer(){
-let dx=targetX-player.x;
-let dy=targetY-player.y;
-let dist=Math.sqrt(dx*dx+dy*dy);
+    /* FOOD */
+    ctx.fillStyle="orange";
+    food.forEach(f=>ctx.fillRect(f.x,f.y,6,6));
 
-let speed = boosting ? 6 : 3;
+    /* PLAYER */
+    player.trail.push({x:player.x,y:player.y});
+    if(player.trail.length>player.size) player.trail.shift();
 
-if(dist>1){
-player.x+=dx/dist*speed;
-player.y+=dy/dist*speed;
-}
+    ctx.fillStyle="lime";
+    player.trail.forEach(p=>ctx.fillRect(p.x,p.y,8,8));
 
-player.trail.push({x:player.x,y:player.y});
-if(player.trail.length>player.size) player.trail.shift();
-}
+    /* BOTS */
+    bots.forEach((b,i)=>{
+      b.x+=(Math.random()-0.5)*5;
+      b.y+=(Math.random()-0.5)*5;
 
-/* 🤖 bots intelligents */
-function updateBots(){
-bots.forEach(b=>{
-let closest=food[0];
-let bestDist=9999;
+      b.trail.push({x:b.x,y:b.y});
+      if(b.trail.length>b.size) b.trail.shift();
 
-food.forEach(f=>{
-let d=(b.x-f.x)*(b.x-f.x)+(b.y-f.y)*(b.y-f.y);
-if(d<bestDist){bestDist=d;closest=f;}
-});
+      ctx.fillStyle="red";
+      b.trail.forEach(p=>ctx.fillRect(p.x,p.y,8,8));
 
-let dx=closest.x-b.x;
-let dy=closest.y-b.y;
-let dist=Math.sqrt(dx*dx+dy*dy);
+      /* KILL BOT */
+      b.trail.forEach(p=>{
+        if(Math.abs(player.x-p.x)<6 && Math.abs(player.y-p.y)<6){
+          // loot
+          for(let k=0;k<10;k++){
+            food.push({x:b.x,y:b.y});
+          }
+          bots.splice(i,1);
+        }
+      });
+    });
 
-b.x+=dx/dist*2;
-b.y+=dy/dist*2;
+    /* EAT */
+    food.forEach((f,i)=>{
+      if(Math.abs(player.x-f.x)<10 && Math.abs(player.y-f.y)<10){
+        player.size+=1;
+        food.splice(i,1);
+      }
+    });
 
-b.trail.push({x:b.x,y:b.y});
-if(b.trail.length>b.size) b.trail.shift();
-});
+  },50);
 }
 
-/* 🍔 nourriture */
-function drawFood(){
-food.forEach(f=>{
-ctx.fillStyle="orange";
-ctx.beginPath();
-ctx.arc(f.x,f.y,6,0,Math.PI*2);
-ctx.fill();
-});
+/* 🖱 CLICK GAME */
+function clickGame(){
+  showGame();
+
+  let score=0;
+  let time=10;
+
+  canvas.onclick=()=>score++;
+
+  let timer=setInterval(()=>{
+    time--;
+    if(time<=0){
+      clearInterval(timer);
+      clearInterval(loop);
+      alert("Score: "+score);
+    }
+  },1000);
+
+  loop=setInterval(()=>{
+    ctx.clearRect(0,0,900,600);
+    ctx.fillStyle="white";
+    ctx.font="40px Arial";
+    ctx.fillText("Score: "+score,350,250);
+    ctx.fillText("Time: "+time,350,300);
+  },50);
 }
 
-/* 🍔 manger */
-function eatFood(s){
-food.forEach((f,i)=>{
-let dx=s.x-f.x;
-let dy=s.y-f.y;
-if(Math.sqrt(dx*dx+dy*dy)<10){
-s.size+=2;
-eatSound.play();
-food.splice(i,1);
-food.push({x:Math.random()*1200,y:Math.random()*800});
-}
-});
-}
+/* ⚡ DODGE GAME */
+function dodgeGame(){
+  showGame();
 
-/* 🐍 dessin smooth */
-function drawSnake(s,color){
-s.trail.forEach((p,i)=>{
-ctx.fillStyle=color;
-ctx.beginPath();
-ctx.arc(p.x,p.y,6,0,Math.PI*2);
-ctx.fill();
-});
-}
+  let player={x:400,y:300};
+  let enemies=[];
 
-/* 💀 collision */
-function checkCollision(){
-bots.forEach(b=>{
-b.trail.forEach(p=>{
-if(Math.abs(player.x-p.x)<6 && Math.abs(player.y-p.y)<6){
-alert("💀 Game Over");
-init();
-}
-});
-});
+  document.onmousemove=e=>{
+    player.x=e.offsetX;
+    player.y=e.offsetY;
+  };
+
+  loop=setInterval(()=>{
+    ctx.clearRect(0,0,900,600);
+
+    enemies.push({x:Math.random()*900,y:0});
+
+    enemies.forEach(e=>{
+      e.y+=5;
+      ctx.fillStyle="red";
+      ctx.fillRect(e.x,e.y,10,10);
+
+      if(Math.abs(player.x-e.x)<10 && Math.abs(player.y-e.y)<10){
+        alert("Game Over");
+        location.reload();
+      }
+    });
+
+    ctx.fillStyle="lime";
+    ctx.fillRect(player.x,player.y,10,10);
+
+  },50);
 }
 
-function loop(){
-if(!running){
-requestAnimationFrame(loop);
-return;
+/* 🏃 RUNNER */
+function runnerGame(){
+  showGame();
+
+  let player={x:100,y:500,vy:0};
+  let gravity=1;
+  let obstacles=[];
+
+  document.onkeydown=e=>{
+    if(e.key===" " && player.y>=500){
+      player.vy=-15;
+    }
+  };
+
+  loop=setInterval(()=>{
+    ctx.clearRect(0,0,900,600);
+
+    player.vy+=gravity;
+    player.y+=player.vy;
+
+    if(player.y>500){
+      player.y=500;
+      player.vy=0;
+    }
+
+    obstacles.push({x:900,y:520});
+
+    obstacles.forEach(o=>{
+      o.x-=5;
+      ctx.fillRect(o.x,o.y,20,20);
+
+      if(Math.abs(player.x-o.x)<20 && Math.abs(player.y-o.y)<20){
+        alert("Game Over");
+        location.reload();
+      }
+    });
+
+    ctx.fillStyle="lime";
+    ctx.fillRect(player.x,player.y,20,20);
+
+  },50);
 }
-
-ctx.clearRect(0,0,1200,800);
-
-movePlayer();
-updateBots();
-
-eatFood(player);
-bots.forEach(b=>eatFood(b));
-
-checkCollision();
-
-drawFood();
-drawSnake(player,"lime");
-bots.forEach(b=>drawSnake(b,"red"));
-
-requestAnimationFrame(loop);
-}
-
-loop();
 </script>
 
 </body>
