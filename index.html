@@ -8,7 +8,7 @@
 body {
     margin: 0;
     font-family: Arial;
-    background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+    background: #0f0f0f;
     color: white;
 }
 
@@ -17,13 +17,12 @@ header {
     text-align: center;
     padding: 20px;
     font-size: 30px;
-    font-weight: bold;
 }
 
-/* GAME GRID */
+/* GRID */
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
     gap: 20px;
     padding: 20px;
 }
@@ -35,10 +34,7 @@ header {
     cursor: pointer;
     transition: 0.3s;
 }
-
-.card:hover {
-    transform: scale(1.05);
-}
+.card:hover { transform: scale(1.05); }
 
 .card img {
     width: 100%;
@@ -46,12 +42,8 @@ header {
     object-fit: cover;
 }
 
-.card p {
-    text-align: center;
-    padding: 10px;
-}
+.card p { text-align: center; padding: 10px; }
 
-/* GAME AREA */
 #gameContainer {
     display: none;
     text-align: center;
@@ -60,15 +52,15 @@ header {
 canvas {
     background: black;
     border: 3px solid lime;
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 button {
     margin: 10px;
-    padding: 10px 20px;
+    padding: 10px;
     background: red;
-    border: none;
     color: white;
+    border: none;
     cursor: pointer;
 }
 </style>
@@ -76,25 +68,25 @@ button {
 
 <body>
 
-<header>🎮 Start Coding - Game Hub</header>
+<header>🎮 Start Coding - PRO</header>
 
 <div class="grid" id="menu">
-    
+
     <div class="card" onclick="startSnake()">
         <img src="https://upload.wikimedia.org/wikipedia/commons/6/6a/Snake_game_icon.png">
-        <p>Snake Game</p>
+        <p>Snake .io</p>
     </div>
 
     <div class="card" onclick="startClicker()">
         <img src="https://cdn-icons-png.flaticon.com/512/1828/1828919.png">
-        <p>Clicker Game</p>
+        <p>Click Challenge</p>
     </div>
 
 </div>
 
 <div id="gameContainer">
     <button onclick="backMenu()">⬅ Back</button>
-    <canvas id="game" width="400" height="400"></canvas>
+    <canvas id="game" width="500" height="500"></canvas>
 </div>
 
 <script>
@@ -102,53 +94,57 @@ let canvas = document.getElementById("game");
 let ctx = canvas.getContext("2d");
 let loop;
 
-/* MENU NAV */
-function startSnake() {
-    showGame();
-    snakeGame();
+/* MENU */
+function showGame(){
+    document.getElementById("menu").style.display="none";
+    document.getElementById("gameContainer").style.display="block";
 }
 
-function startClicker() {
-    showGame();
-    clickerGame();
-}
-
-function showGame() {
-    document.getElementById("menu").style.display = "none";
-    document.getElementById("gameContainer").style.display = "block";
-}
-
-function backMenu() {
+function backMenu(){
     clearInterval(loop);
     location.reload();
 }
 
-/* SNAKE GAME */
-function snakeGame() {
-    let snake = [{x:200,y:200}];
-    let food = {x:100,y:100};
-    let dx = 20, dy = 0;
+/* 🔥 SNAKE PRO */
+function startSnake(){
+    showGame();
 
-    document.onkeydown = e => {
-        if(e.key==="ArrowUp") {dx=0; dy=-20;}
-        if(e.key==="ArrowDown") {dx=0; dy=20;}
-        if(e.key==="ArrowLeft") {dx=-20; dy=0;}
-        if(e.key==="ArrowRight") {dx=20; dy=0;}
+    let snake = [{x:250,y:250}];
+    let dx=20, dy=0;
+    let foods=[];
+
+    // generate many burgers
+    for(let i=0;i<20;i++){
+        foods.push({
+            x:Math.floor(Math.random()*25)*20,
+            y:Math.floor(Math.random()*25)*20
+        });
+    }
+
+    document.onkeydown=e=>{
+        if(e.key==="ArrowUp"){dx=0;dy=-20;}
+        if(e.key==="ArrowDown"){dx=0;dy=20;}
+        if(e.key==="ArrowLeft"){dx=-20;dy=0;}
+        if(e.key==="ArrowRight"){dx=20;dy=0;}
     };
 
-    loop = setInterval(() => {
-        ctx.fillStyle = "black";
-        ctx.fillRect(0,0,400,400);
+    loop=setInterval(()=>{
+        ctx.fillStyle="black";
+        ctx.fillRect(0,0,500,500);
 
-        ctx.fillStyle = "red";
-        ctx.fillRect(food.x, food.y, 20, 20);
+        // draw food 🍔
+        ctx.fillStyle="orange";
+        foods.forEach(f=>ctx.fillRect(f.x,f.y,15,15));
 
-        ctx.fillStyle = "lime";
-        snake.forEach(s => ctx.fillRect(s.x, s.y, 20, 20));
+        // snake body
+        ctx.fillStyle="lime";
+        snake.forEach((s,i)=>{
+            ctx.fillRect(s.x,s.y,20,20);
+        });
 
-        let head = {x: snake[0].x + dx, y: snake[0].y + dy};
+        let head={x:snake[0].x+dx,y:snake[0].y+dy};
 
-        if(head.x<0||head.y<0||head.x>=400||head.y>=400){
+        if(head.x<0||head.y<0||head.x>=500||head.y>=500){
             clearInterval(loop);
             alert("Game Over");
             return;
@@ -156,32 +152,59 @@ function snakeGame() {
 
         snake.unshift(head);
 
-        if(head.x===food.x && head.y===food.y){
-            food = {
-                x: Math.floor(Math.random()*20)*20,
-                y: Math.floor(Math.random()*20)*20
-            };
-        } else {
-            snake.pop();
-        }
+        // eat
+        foods = foods.filter(f=>{
+            if(head.x===f.x && head.y===f.y){
+                // add new food
+                foods.push({
+                    x:Math.floor(Math.random()*25)*20,
+                    y:Math.floor(Math.random()*25)*20
+                });
+                return false;
+            }
+            return true;
+        });
 
-    },100);
+        snake.pop();
+
+    },80);
 }
 
-/* CLICKER GAME */
-function clickerGame() {
-    let score = 0;
+/* 🖱 CLICK GAME PRO */
+function startClicker(){
+    showGame();
 
-    loop = setInterval(() => {
-        ctx.fillStyle = "#111";
-        ctx.fillRect(0,0,400,400);
+    let score=0;
+    let time=10;
 
-        ctx.fillStyle = "white";
-        ctx.font = "30px Arial";
-        ctx.fillText("Score: " + score, 120, 200);
+    loop=setInterval(()=>{
+        ctx.fillStyle="#111";
+        ctx.fillRect(0,0,500,500);
+
+        ctx.fillStyle="white";
+        ctx.font="30px Arial";
+        ctx.fillText("Score: "+score,150,200);
+        ctx.fillText("Time: "+time,150,250);
+
     },50);
 
-    canvas.onclick = () => {
+    let timer=setInterval(()=>{
+        time--;
+        if(time<=0){
+            clearInterval(loop);
+            clearInterval(timer);
+
+            let best = localStorage.getItem("record") || 0;
+            if(score>best){
+                localStorage.setItem("record",score);
+                alert("🔥 NEW RECORD: "+score);
+            } else {
+                alert("Score: "+score+" | Record: "+best);
+            }
+        }
+    },1000);
+
+    canvas.onclick=()=>{
         score++;
     };
 }
