@@ -1,213 +1,171 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Start Coding - Game Hub</title>
+<title>Start Coding - PRO</title>
 
 <style>
 body {
-    margin: 0;
-    font-family: Arial;
-    background: #0f0f0f;
-    color: white;
+  background: linear-gradient(135deg, #0f2027, #2c5364);
+  color: white;
+  text-align: center;
+  font-family: Arial;
 }
 
-/* HEADER */
-header {
-    text-align: center;
-    padding: 20px;
-    font-size: 30px;
-}
-
-/* GRID */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
-    gap: 20px;
-    padding: 20px;
-}
-
-.card {
-    background: #222;
-    border-radius: 15px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: 0.3s;
-}
-.card:hover { transform: scale(1.05); }
-
-.card img {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-}
-
-.card p { text-align: center; padding: 10px; }
-
-#gameContainer {
-    display: none;
-    text-align: center;
+h1 {
+  font-size: 40px;
 }
 
 canvas {
-    background: black;
-    border: 3px solid lime;
-    margin-top: 10px;
+  border: 3px solid lime;
+  background: black;
 }
 
 button {
-    margin: 10px;
-    padding: 10px;
-    background: red;
-    color: white;
-    border: none;
-    cursor: pointer;
+  padding: 10px;
+  font-size: 18px;
+  background: red;
+  color: white;
+  border: none;
+  margin-top: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<header>🎮 Start Coding - PRO</header>
+<h1>🎮 Start Coding - PRO</h1>
+<p>Eat burgers 🍔, grow, survive bots 🤖</p>
 
-<div class="grid" id="menu">
-
-    <div class="card" onclick="startSnake()">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6a/Snake_game_icon.png">
-        <p>Snake .io</p>
-    </div>
-
-    <div class="card" onclick="startClicker()">
-        <img src="https://cdn-icons-png.flaticon.com/512/1828/1828919.png">
-        <p>Click Challenge</p>
-    </div>
-
-</div>
-
-<div id="gameContainer">
-    <button onclick="backMenu()">⬅ Back</button>
-    <canvas id="game" width="500" height="500"></canvas>
-</div>
+<canvas id="game" width="600" height="600"></canvas>
+<br>
+<button onclick="restart()">🔄 Restart</button>
 
 <script>
 let canvas = document.getElementById("game");
 let ctx = canvas.getContext("2d");
-let loop;
 
-/* MENU */
-function showGame(){
-    document.getElementById("menu").style.display="none";
-    document.getElementById("gameContainer").style.display="block";
+let player, bots, food;
+
+function init() {
+  player = {
+    x: 300,
+    y: 300,
+    size: 10,
+    dx: 0,
+    dy: 0,
+    trail: []
+  };
+
+  bots = [];
+  for (let i = 0; i < 5; i++) {
+    bots.push({
+      x: Math.random()*600,
+      y: Math.random()*600,
+      size: 10,
+      dx: (Math.random()-0.5)*4,
+      dy: (Math.random()-0.5)*4,
+      trail: []
+    });
+  }
+
+  food = [];
+  for (let i = 0; i < 30; i++) {
+    food.push({
+      x: Math.random()*600,
+      y: Math.random()*600
+    });
+  }
 }
 
-function backMenu(){
-    clearInterval(loop);
-    location.reload();
+document.addEventListener("keydown", e => {
+  if(e.key === "ArrowUp") player.dy = -4, player.dx = 0;
+  if(e.key === "ArrowDown") player.dy = 4, player.dx = 0;
+  if(e.key === "ArrowLeft") player.dx = -4, player.dy = 0;
+  if(e.key === "ArrowRight") player.dx = 4, player.dy = 0;
+});
+
+function updateSnake(snake) {
+  snake.x += snake.dx;
+  snake.y += snake.dy;
+
+  snake.trail.push({x: snake.x, y: snake.y});
+  if (snake.trail.length > snake.size) {
+    snake.trail.shift();
+  }
 }
 
-/* 🔥 SNAKE PRO */
-function startSnake(){
-    showGame();
+function drawSnake(snake, color) {
+  ctx.fillStyle = color;
+  snake.trail.forEach(p => {
+    ctx.fillRect(p.x, p.y, 8, 8);
+  });
+}
 
-    let snake = [{x:250,y:250}];
-    let dx=20, dy=0;
-    let foods=[];
-
-    // generate many burgers
-    for(let i=0;i<20;i++){
-        foods.push({
-            x:Math.floor(Math.random()*25)*20,
-            y:Math.floor(Math.random()*25)*20
-        });
+function updateBots() {
+  bots.forEach(bot => {
+    if(Math.random() < 0.02){
+      bot.dx = (Math.random()-0.5)*4;
+      bot.dy = (Math.random()-0.5)*4;
     }
-
-    document.onkeydown=e=>{
-        if(e.key==="ArrowUp"){dx=0;dy=-20;}
-        if(e.key==="ArrowDown"){dx=0;dy=20;}
-        if(e.key==="ArrowLeft"){dx=-20;dy=0;}
-        if(e.key==="ArrowRight"){dx=20;dy=0;}
-    };
-
-    loop=setInterval(()=>{
-        ctx.fillStyle="black";
-        ctx.fillRect(0,0,500,500);
-
-        // draw food 🍔
-        ctx.fillStyle="orange";
-        foods.forEach(f=>ctx.fillRect(f.x,f.y,15,15));
-
-        // snake body
-        ctx.fillStyle="lime";
-        snake.forEach((s,i)=>{
-            ctx.fillRect(s.x,s.y,20,20);
-        });
-
-        let head={x:snake[0].x+dx,y:snake[0].y+dy};
-
-        if(head.x<0||head.y<0||head.x>=500||head.y>=500){
-            clearInterval(loop);
-            alert("Game Over");
-            return;
-        }
-
-        snake.unshift(head);
-
-        // eat
-        foods = foods.filter(f=>{
-            if(head.x===f.x && head.y===f.y){
-                // add new food
-                foods.push({
-                    x:Math.floor(Math.random()*25)*20,
-                    y:Math.floor(Math.random()*25)*20
-                });
-                return false;
-            }
-            return true;
-        });
-
-        snake.pop();
-
-    },80);
+    updateSnake(bot);
+  });
 }
 
-/* 🖱 CLICK GAME PRO */
-function startClicker(){
-    showGame();
-
-    let score=0;
-    let time=10;
-
-    loop=setInterval(()=>{
-        ctx.fillStyle="#111";
-        ctx.fillRect(0,0,500,500);
-
-        ctx.fillStyle="white";
-        ctx.font="30px Arial";
-        ctx.fillText("Score: "+score,150,200);
-        ctx.fillText("Time: "+time,150,250);
-
-    },50);
-
-    let timer=setInterval(()=>{
-        time--;
-        if(time<=0){
-            clearInterval(loop);
-            clearInterval(timer);
-
-            let best = localStorage.getItem("record") || 0;
-            if(score>best){
-                localStorage.setItem("record",score);
-                alert("🔥 NEW RECORD: "+score);
-            } else {
-                alert("Score: "+score+" | Record: "+best);
-            }
-        }
-    },1000);
-
-    canvas.onclick=()=>{
-        score++;
-    };
+function eatFood(snake) {
+  food.forEach((f, i) => {
+    let dx = snake.x - f.x;
+    let dy = snake.y - f.y;
+    if(Math.sqrt(dx*dx+dy*dy) < 10){
+      snake.size += 2;
+      food.splice(i,1);
+      food.push({x: Math.random()*600, y: Math.random()*600});
+    }
+  });
 }
+
+function drawFood() {
+  food.forEach(f => {
+    ctx.fillStyle = "orange";
+    ctx.fillRect(f.x, f.y, 6, 6);
+  });
+}
+
+function checkCollision() {
+  bots.forEach(bot => {
+    bot.trail.forEach(p => {
+      if(Math.abs(player.x - p.x) < 5 && Math.abs(player.y - p.y) < 5){
+        alert("Game Over");
+        init();
+      }
+    });
+  });
+}
+
+function gameLoop() {
+  ctx.clearRect(0,0,600,600);
+
+  updateSnake(player);
+  updateBots();
+
+  eatFood(player);
+  bots.forEach(b => eatFood(b));
+
+  checkCollision();
+
+  drawFood();
+  drawSnake(player, "lime");
+
+  bots.forEach(b => drawSnake(b, "red"));
+
+  requestAnimationFrame(gameLoop);
+}
+
+function restart(){
+  init();
+}
+
+init();
+gameLoop();
 </script>
 
 </body>
