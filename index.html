@@ -1,171 +1,225 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Start Coding - PRO</title>
+<title>Start Coding - ULTRA</title>
 
 <style>
 body {
-  background: linear-gradient(135deg, #0f2027, #2c5364);
-  color: white;
-  text-align: center;
-  font-family: Arial;
+  margin:0;
+  font-family:Arial;
+  background: radial-gradient(circle, #1a2a3a, #0f2027);
+  color:white;
+  text-align:center;
 }
 
-h1 {
-  font-size: 40px;
-}
-
-canvas {
-  border: 3px solid lime;
-  background: black;
+#menu {
+  padding-top:100px;
 }
 
 button {
-  padding: 10px;
-  font-size: 18px;
-  background: red;
-  color: white;
-  border: none;
-  margin-top: 10px;
+  padding:15px;
+  font-size:20px;
+  margin:10px;
+  background:lime;
+  border:none;
+}
+
+canvas {
+  display:none;
+  background:black;
+  border:4px solid lime;
+  touch-action:none;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🎮 Start Coding - PRO</h1>
-<p>Eat burgers 🍔, grow, survive bots 🤖</p>
+<div id="menu">
+  <h1>🎮 Start Coding</h1>
+  <p>Like slither.io 🐍</p>
+  <button onclick="startGame()">▶ Play</button>
+</div>
 
-<canvas id="game" width="600" height="600"></canvas>
+<canvas id="game" width="1200" height="800"></canvas>
 <br>
-<button onclick="restart()">🔄 Restart</button>
+<button id="quitBtn" onclick="quitGame()" style="display:none;">❌ Quit</button>
 
 <script>
 let canvas = document.getElementById("game");
 let ctx = canvas.getContext("2d");
 
 let player, bots, food;
+let running=false;
+let targetX=600,targetY=400;
+let boosting=false;
 
-function init() {
-  player = {
-    x: 300,
-    y: 300,
-    size: 10,
-    dx: 0,
-    dy: 0,
-    trail: []
-  };
+let eatSound=new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
 
-  bots = [];
-  for (let i = 0; i < 5; i++) {
-    bots.push({
-      x: Math.random()*600,
-      y: Math.random()*600,
-      size: 10,
-      dx: (Math.random()-0.5)*4,
-      dy: (Math.random()-0.5)*4,
-      trail: []
-    });
-  }
+function init(){
+player={x:600,y:400,size:15,trail:[]};
 
-  food = [];
-  for (let i = 0; i < 30; i++) {
-    food.push({
-      x: Math.random()*600,
-      y: Math.random()*600
-    });
-  }
+bots=[];
+for(let i=0;i<6;i++){
+bots.push({
+x:Math.random()*1200,
+y:Math.random()*800,
+size:15,
+trail:[]
+});
 }
 
-document.addEventListener("keydown", e => {
-  if(e.key === "ArrowUp") player.dy = -4, player.dx = 0;
-  if(e.key === "ArrowDown") player.dy = 4, player.dx = 0;
-  if(e.key === "ArrowLeft") player.dx = -4, player.dy = 0;
-  if(e.key === "ArrowRight") player.dx = 4, player.dy = 0;
+food=[];
+for(let i=0;i<80;i++){
+food.push({x:Math.random()*1200,y:Math.random()*800});
+}
+}
+
+function startGame(){
+document.getElementById("menu").style.display="none";
+canvas.style.display="block";
+document.getElementById("quitBtn").style.display="inline";
+running=true;
+init();
+}
+
+function quitGame(){
+running=false;
+canvas.style.display="none";
+document.getElementById("quitBtn").style.display="none";
+document.getElementById("menu").style.display="block";
+}
+
+/* 🖱 souris */
+canvas.addEventListener("mousemove",e=>{
+let r=canvas.getBoundingClientRect();
+targetX=e.clientX-r.left;
+targetY=e.clientY-r.top;
 });
 
-function updateSnake(snake) {
-  snake.x += snake.dx;
-  snake.y += snake.dy;
+/* 📱 tactile */
+canvas.addEventListener("touchmove",e=>{
+let r=canvas.getBoundingClientRect();
+targetX=e.touches[0].clientX-r.left;
+targetY=e.touches[0].clientY-r.top;
+});
 
-  snake.trail.push({x: snake.x, y: snake.y});
-  if (snake.trail.length > snake.size) {
-    snake.trail.shift();
-  }
+/* ⚡ boost */
+canvas.addEventListener("mousedown",()=>boosting=true);
+canvas.addEventListener("mouseup",()=>boosting=false);
+canvas.addEventListener("touchstart",()=>boosting=true);
+canvas.addEventListener("touchend",()=>boosting=false);
+
+/* 🐍 mouvement joueur */
+function movePlayer(){
+let dx=targetX-player.x;
+let dy=targetY-player.y;
+let dist=Math.sqrt(dx*dx+dy*dy);
+
+let speed = boosting ? 6 : 3;
+
+if(dist>1){
+player.x+=dx/dist*speed;
+player.y+=dy/dist*speed;
 }
 
-function drawSnake(snake, color) {
-  ctx.fillStyle = color;
-  snake.trail.forEach(p => {
-    ctx.fillRect(p.x, p.y, 8, 8);
-  });
+player.trail.push({x:player.x,y:player.y});
+if(player.trail.length>player.size) player.trail.shift();
 }
 
-function updateBots() {
-  bots.forEach(bot => {
-    if(Math.random() < 0.02){
-      bot.dx = (Math.random()-0.5)*4;
-      bot.dy = (Math.random()-0.5)*4;
-    }
-    updateSnake(bot);
-  });
+/* 🤖 bots intelligents */
+function updateBots(){
+bots.forEach(b=>{
+let closest=food[0];
+let bestDist=9999;
+
+food.forEach(f=>{
+let d=(b.x-f.x)*(b.x-f.x)+(b.y-f.y)*(b.y-f.y);
+if(d<bestDist){bestDist=d;closest=f;}
+});
+
+let dx=closest.x-b.x;
+let dy=closest.y-b.y;
+let dist=Math.sqrt(dx*dx+dy*dy);
+
+b.x+=dx/dist*2;
+b.y+=dy/dist*2;
+
+b.trail.push({x:b.x,y:b.y});
+if(b.trail.length>b.size) b.trail.shift();
+});
 }
 
-function eatFood(snake) {
-  food.forEach((f, i) => {
-    let dx = snake.x - f.x;
-    let dy = snake.y - f.y;
-    if(Math.sqrt(dx*dx+dy*dy) < 10){
-      snake.size += 2;
-      food.splice(i,1);
-      food.push({x: Math.random()*600, y: Math.random()*600});
-    }
-  });
+/* 🍔 nourriture */
+function drawFood(){
+food.forEach(f=>{
+ctx.fillStyle="orange";
+ctx.beginPath();
+ctx.arc(f.x,f.y,6,0,Math.PI*2);
+ctx.fill();
+});
 }
 
-function drawFood() {
-  food.forEach(f => {
-    ctx.fillStyle = "orange";
-    ctx.fillRect(f.x, f.y, 6, 6);
-  });
+/* 🍔 manger */
+function eatFood(s){
+food.forEach((f,i)=>{
+let dx=s.x-f.x;
+let dy=s.y-f.y;
+if(Math.sqrt(dx*dx+dy*dy)<10){
+s.size+=2;
+eatSound.play();
+food.splice(i,1);
+food.push({x:Math.random()*1200,y:Math.random()*800});
+}
+});
 }
 
-function checkCollision() {
-  bots.forEach(bot => {
-    bot.trail.forEach(p => {
-      if(Math.abs(player.x - p.x) < 5 && Math.abs(player.y - p.y) < 5){
-        alert("Game Over");
-        init();
-      }
-    });
-  });
+/* 🐍 dessin smooth */
+function drawSnake(s,color){
+s.trail.forEach((p,i)=>{
+ctx.fillStyle=color;
+ctx.beginPath();
+ctx.arc(p.x,p.y,6,0,Math.PI*2);
+ctx.fill();
+});
 }
 
-function gameLoop() {
-  ctx.clearRect(0,0,600,600);
-
-  updateSnake(player);
-  updateBots();
-
-  eatFood(player);
-  bots.forEach(b => eatFood(b));
-
-  checkCollision();
-
-  drawFood();
-  drawSnake(player, "lime");
-
-  bots.forEach(b => drawSnake(b, "red"));
-
-  requestAnimationFrame(gameLoop);
-}
-
-function restart(){
-  init();
-}
-
+/* 💀 collision */
+function checkCollision(){
+bots.forEach(b=>{
+b.trail.forEach(p=>{
+if(Math.abs(player.x-p.x)<6 && Math.abs(player.y-p.y)<6){
+alert("💀 Game Over");
 init();
-gameLoop();
+}
+});
+});
+}
+
+function loop(){
+if(!running){
+requestAnimationFrame(loop);
+return;
+}
+
+ctx.clearRect(0,0,1200,800);
+
+movePlayer();
+updateBots();
+
+eatFood(player);
+bots.forEach(b=>eatFood(b));
+
+checkCollision();
+
+drawFood();
+drawSnake(player,"lime");
+bots.forEach(b=>drawSnake(b,"red"));
+
+requestAnimationFrame(loop);
+}
+
+loop();
 </script>
 
 </body>
