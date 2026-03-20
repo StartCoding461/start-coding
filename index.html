@@ -2,76 +2,184 @@
 <html>
 <head>
     <title>Start Coding</title>
-    <meta charset="UTF-8">
+    <style>
+        body {
+            background: black;
+            color: white;
+            font-family: Arial;
+            margin: 0;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px;
+            font-size: 40px;
+        }
+
+        .intro {
+            text-align: center;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            font-size: 18px;
+        }
+
+        .section {
+            padding: 30px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .box {
+            background: #222;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        button {
+            background: green;
+            border: none;
+            padding: 5px 10px;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+
+    <script>
+        function copyCode(id) {
+            let text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text);
+            alert("Code copied!");
+        }
+    </script>
 </head>
 
-<body style="margin:0;background:black;color:white;font-family:Arial;">
+<body>
 
-<!-- MENU -->
-<div style="position:fixed;left:0;top:0;width:220px;height:100%;background:#111;padding:20px;">
-    <h2>📂 Menu</h2>
-    <p><a href="#debutant" style="color:white;text-decoration:none;">🔰 Débutant</a></p>
-    <p><a href="#amateur" style="color:white;text-decoration:none;">⚙️ Amateur</a></p>
-    <p><a href="#pro" style="color:white;text-decoration:none;">🚀 Professionnel</a></p>
+<header>💻 Start Coding</header>
+
+<div class="intro">
+    <p>
+        Welcome to Start Coding! 🚀 <br><br>
+        Learn programming step by step with real examples.  
+        Start simple and progress to advanced projects.
+    </p>
 </div>
 
-<!-- CONTENU -->
-<div style="margin-left:240px;padding:20px;">
+<div class="section">
+<h2>🟢 Beginner (Free)</h2>
 
-<h1>💻 Start Coding</h1>
-<p>Bienvenue sur ton site 🚀</p>
+<div class="box">
+<pre id="code1">
+<!DOCTYPE html>
+<html>
+<head>
+<title>My First Page</title>
+</head>
 
-<!-- DEBUTANT -->
-<h2 id="debutant">🔰 Débutant (codes gratuits)</h2>
+<body style="background:black; color:white; text-align:center;">
 
-<h3>Code 1</h3>
-<pre id="code1">print("Bonjour monde")</pre>
-<button onclick="copyText('code1')">Copier</button>
+<h1>Welcome</h1>
 
-<h3>Code 2</h3>
-<pre id="code4">
-nom = input("Ton nom: ")
-print("Bonjour", nom)
+<p>This is my first website</p>
+
+<button onclick="alert('Hello!')">Click me</button>
+
+</body>
+</html>
 </pre>
-<button onclick="copyText('code4')">Copier</button>
+<button onclick="copyCode('code1')">Copy</button>
+</div>
 
-<br><br>
+</div>
 
-<!-- AMATEUR -->
-<h2 id="amateur">⚙️ Amateur</h2>
-<p>💰 Code premium (5€)</p>
+<div class="section">
+<h2>🟡 Amateur</h2>
 
+<div class="box">
 <pre id="code2">
-for i in range(5):
-    print(i)
-</pre>
-<button onclick="copyText('code2')">Copier</button>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Color Changer</title>
+</head>
 
-<br><br>
+<body style="text-align:center;">
 
-<!-- PRO -->
-<h2 id="pro">🚀 Professionnel</h2>
-<p>💰 Code premium (20€)</p>
+<h1>Click to change color</h1>
 
-<pre id="code3">
-def fibonacci(n):
-    a, b = 0, 1
-    for _ in range(n):
-        print(a)
-        a, b = b, a + b
-</pre>
-<button onclick="copyText('code3')">Copier</button>
+<button onclick="changeColor()">Change</button>
 
-</div>
-
-<!-- SCRIPT -->
 <script>
-function copyText(id) {
-    var text = document.getElementById(id).innerText;
-    navigator.clipboard.writeText(text);
-    alert("✅ Code copié !");
+function changeColor() {
+    let colors = ["red", "blue", "green", "purple", "orange"];
+    let random = colors[Math.floor(Math.random() * colors.length)];
+    document.body.style.background = random;
 }
 </script>
+
+</body>
+</html>
+</pre>
+<button onclick="copyCode('code2')">Copy</button>
+</div>
+
+</div>
+
+<div class="section">
+<h2>🔴 Professional</h2>
+
+<div class="box">
+<pre id="code3">
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mini Game</title>
+<style>
+#box {
+    width: 50px;
+    height: 50px;
+    background: red;
+    position: absolute;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Click the moving box!</h1>
+
+<div id="box"></div>
+
+<script>
+let box = document.getElementById("box");
+
+function moveBox() {
+    let x = Math.random() * window.innerWidth;
+    let y = Math.random() * window.innerHeight;
+
+    box.style.left = x + "px";
+    box.style.top = y + "px";
+}
+
+box.addEventListener("click", moveBox);
+
+moveBox();
+</script>
+
+</body>
+</html>
+</pre>
+<button onclick="copyCode('code3')">Copy</button>
+</div>
+
+</div>
 
 </body>
 </html>
