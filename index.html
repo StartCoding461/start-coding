@@ -1,117 +1,65 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Start Coding</title>
+<title>Start Coding - Games</title>
 
-    <style>
-        body {
-            background: black;
-            color: white;
-            font-family: Arial;
-            margin: 0;
-        }
-
-        header {
-            text-align: center;
-            padding: 30px;
-            font-size: 35px;
-        }
-
-        .section {
-            padding: 30px;
-            max-width: 900px;
-            margin: auto;
-        }
-
-        .box {
-            background: #222;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 10px;
-        }
-
-        pre {
-            background: black;
-            padding: 10px;
-            overflow-x: auto;
-        }
-
-        button {
-            background: green;
-            border: none;
-            padding: 8px;
-            color: white;
-            cursor: pointer;
-        }
-    </style>
-
-    <script>
-        function copyCode(id) {
-            let text = document.getElementById(id).innerText;
-            navigator.clipboard.writeText(text);
-            alert("Code copied!");
-        }
-    </script>
-
-</head>
-
-<body>
-
-<header>💻 Start Coding</header>
-
-<div class="section">
-<h2>🟢 Beginner</h2>
-
-<div class="box">
-<pre id="code1">
-print("Hello World")
-
-for i in range(5):
-    print(i)
-</pre>
-<button onclick="copyCode('code1')">Copy</button>
-</div>
-
-</div>
-
-<div class="section">
-<h2>🟡 Amateur</h2>
-
-<div class="box">
-<pre id="code2">
-<!DOCTYPE html>
-<html>
-<body>
-
-<h1>Click Game</h1>
-
-<button onclick="alert('You clicked!')">Click</button>
-
-</body>
-</html>
-</pre>
-<button onclick="copyCode('code2')">Copy</button>
-</div>
-
-</div>
-
-<div class="section">
-<h2>🔴 Professional - Snake Game 🐍</h2>
-
-<div class="box">
-<pre id="code3">
-<!DOCTYPE html>
-<html>
-<head>
 <style>
-canvas {
+body {
     background: black;
+    color: white;
+    font-family: Arial;
+    margin:0;
+    text-align:center;
+}
+
+header {
+    padding:20px;
+    font-size:30px;
+    box-shadow:0 0 20px lime;
+}
+
+.grid {
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    flex-wrap:wrap;
+    padding:20px;
+}
+
+.game {
+    width:150px;
+    height:150px;
+    background:#111;
+    border:2px solid lime;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.game:hover {
+    transform:scale(1.1);
+    box-shadow:0 0 20px lime;
+}
+
+canvas {
+    background:#111;
+    margin-top:20px;
+    display:none;
 }
 </style>
+
 </head>
 
 <body>
+
+<header>🎮 Start Coding</header>
+
+<div id="menu" class="grid">
+    <div class="game" onclick="launchSnake()">🐍 Snake</div>
+    <div class="game" onclick="launchClick()">⚡ Click Game</div>
+</div>
 
 <canvas id="game" width="400" height="400"></canvas>
 
@@ -119,51 +67,61 @@ canvas {
 let canvas = document.getElementById("game");
 let ctx = canvas.getContext("2d");
 
-let snake = [{x:200,y:200}];
-let dx = 20;
-let dy = 0;
+function launchSnake() {
+    document.getElementById("menu").style.display="none";
+    canvas.style.display="block";
+    startSnake();
+}
 
-let food = {x:100, y:100};
+function launchClick() {
+    document.getElementById("menu").style.display="none";
+    alert("Coming soon 🚀");
+}
+
+let snake, dx, dy, food;
+
+function startSnake() {
+    snake=[{x:200,y:200}];
+    dx=20; dy=0;
+    food={x:100,y:100};
+}
 
 function draw() {
-    ctx.fillStyle = "black";
+    ctx.fillStyle="#111";
     ctx.fillRect(0,0,400,400);
 
-    ctx.fillStyle = "lime";
-    snake.forEach(s => ctx.fillRect(s.x, s.y, 20, 20));
+    let head={x:snake[0].x+dx,y:snake[0].y+dy};
 
-    ctx.fillStyle = "red";
-    ctx.fillRect(food.x, food.y, 20, 20);
+    if(head.x<0||head.x>=400||head.y<0||head.y>=400){
+        alert("Game Over");
+        location.reload();
+    }
 
-    let head = {x: snake[0].x + dx, y: snake[0].y + dy};
     snake.unshift(head);
 
-    if(head.x === food.x && head.y === food.y){
-        food.x = Math.floor(Math.random()*20)*20;
-        food.y = Math.floor(Math.random()*20)*20;
+    if(head.x===food.x&&head.y===food.y){
+        food.x=Math.floor(Math.random()*20)*20;
+        food.y=Math.floor(Math.random()*20)*20;
     } else {
         snake.pop();
     }
+
+    ctx.fillStyle="lime";
+    snake.forEach(s=>ctx.fillRect(s.x,s.y,20,20));
+
+    ctx.fillStyle="red";
+    ctx.fillRect(food.x,food.y,20,20);
 }
 
-document.addEventListener("keydown", e => {
-    if(e.key === "ArrowUp") {dx=0; dy=-20;}
-    if(e.key === "ArrowDown") {dx=0; dy=20;}
-    if(e.key === "ArrowLeft") {dx=-20; dy=0;}
-    if(e.key === "ArrowRight") {dx=20; dy=0;}
+document.addEventListener("keydown", e=>{
+    if(e.key==="ArrowUp"){dx=0;dy=-20;}
+    if(e.key==="ArrowDown"){dx=0;dy=20;}
+    if(e.key==="ArrowLeft"){dx=-20;dy=0;}
+    if(e.key==="ArrowRight"){dx=20;dy=0;}
 });
 
-setInterval(draw, 100);
+setInterval(draw,100);
 </script>
-
-</body>
-</html>
-</pre>
-
-<button onclick="copyCode('code3')">Copy</button>
-</div>
-
-</div>
 
 </body>
 </html>
