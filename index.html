@@ -1,7 +1,9 @@
+
 <!DOCTYPE html>
 <html>
 <head>
     <title>Start Coding</title>
+
     <style>
         body {
             background: black;
@@ -12,16 +14,8 @@
 
         header {
             text-align: center;
-            padding: 40px;
-            font-size: 40px;
-        }
-
-        .intro {
-            text-align: center;
-            max-width: 800px;
-            margin: auto;
-            padding: 20px;
-            font-size: 18px;
+            padding: 30px;
+            font-size: 35px;
         }
 
         .section {
@@ -33,19 +27,20 @@
         .box {
             background: #222;
             padding: 15px;
-            margin: 15px 0;
+            margin: 20px 0;
             border-radius: 10px;
         }
 
         pre {
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            background: black;
+            padding: 10px;
+            overflow-x: auto;
         }
 
         button {
             background: green;
             border: none;
-            padding: 5px 10px;
+            padding: 8px;
             color: white;
             cursor: pointer;
         }
@@ -58,41 +53,22 @@
             alert("Code copied!");
         }
     </script>
+
 </head>
 
 <body>
 
 <header>💻 Start Coding</header>
 
-<div class="intro">
-    <p>
-        Welcome to Start Coding! 🚀 <br><br>
-        Learn programming step by step with real examples.  
-        Start simple and progress to advanced projects.
-    </p>
-</div>
-
 <div class="section">
-<h2>🟢 Beginner (Free)</h2>
+<h2>🟢 Beginner</h2>
 
 <div class="box">
 <pre id="code1">
-<!DOCTYPE html>
-<html>
-<head>
-<title>My First Page</title>
-</head>
+print("Hello World")
 
-<body style="background:black; color:white; text-align:center;">
-
-<h1>Welcome</h1>
-
-<p>This is my first website</p>
-
-<button onclick="alert('Hello!')">Click me</button>
-
-</body>
-</html>
+for i in range(5):
+    print(i)
 </pre>
 <button onclick="copyCode('code1')">Copy</button>
 </div>
@@ -106,23 +82,11 @@
 <pre id="code2">
 <!DOCTYPE html>
 <html>
-<head>
-<title>Color Changer</title>
-</head>
+<body>
 
-<body style="text-align:center;">
+<h1>Click Game</h1>
 
-<h1>Click to change color</h1>
-
-<button onclick="changeColor()">Change</button>
-
-<script>
-function changeColor() {
-    let colors = ["red", "blue", "green", "purple", "orange"];
-    let random = colors[Math.floor(Math.random() * colors.length)];
-    document.body.style.background = random;
-}
-</script>
+<button onclick="alert('You clicked!')">Click</button>
 
 </body>
 </html>
@@ -133,49 +97,69 @@ function changeColor() {
 </div>
 
 <div class="section">
-<h2>🔴 Professional</h2>
+<h2>🔴 Professional - Snake Game 🐍</h2>
 
 <div class="box">
 <pre id="code3">
 <!DOCTYPE html>
 <html>
 <head>
-<title>Mini Game</title>
 <style>
-#box {
-    width: 50px;
-    height: 50px;
-    background: red;
-    position: absolute;
+canvas {
+    background: black;
 }
 </style>
 </head>
 
 <body>
 
-<h1>Click the moving box!</h1>
-
-<div id="box"></div>
+<canvas id="game" width="400" height="400"></canvas>
 
 <script>
-let box = document.getElementById("box");
+let canvas = document.getElementById("game");
+let ctx = canvas.getContext("2d");
 
-function moveBox() {
-    let x = Math.random() * window.innerWidth;
-    let y = Math.random() * window.innerHeight;
+let snake = [{x:200,y:200}];
+let dx = 20;
+let dy = 0;
 
-    box.style.left = x + "px";
-    box.style.top = y + "px";
+let food = {x:100, y:100};
+
+function draw() {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0,0,400,400);
+
+    ctx.fillStyle = "lime";
+    snake.forEach(s => ctx.fillRect(s.x, s.y, 20, 20));
+
+    ctx.fillStyle = "red";
+    ctx.fillRect(food.x, food.y, 20, 20);
+
+    let head = {x: snake[0].x + dx, y: snake[0].y + dy};
+    snake.unshift(head);
+
+    if(head.x === food.x && head.y === food.y){
+        food.x = Math.floor(Math.random()*20)*20;
+        food.y = Math.floor(Math.random()*20)*20;
+    } else {
+        snake.pop();
+    }
 }
 
-box.addEventListener("click", moveBox);
+document.addEventListener("keydown", e => {
+    if(e.key === "ArrowUp") {dx=0; dy=-20;}
+    if(e.key === "ArrowDown") {dx=0; dy=20;}
+    if(e.key === "ArrowLeft") {dx=-20; dy=0;}
+    if(e.key === "ArrowRight") {dx=20; dy=0;}
+});
 
-moveBox();
+setInterval(draw, 100);
 </script>
 
 </body>
 </html>
 </pre>
+
 <button onclick="copyCode('code3')">Copy</button>
 </div>
 
