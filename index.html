@@ -1,240 +1,210 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Start Coding - Game Hub</title>
+<title>Start Coding - PRO</title>
 
 <style>
 body {
   margin:0;
-  font-family:Arial;
-  background:#111;
+  font-family: Arial;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
   color:white;
   text-align:center;
 }
 
-.menu {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:20px;
-  padding:20px;
+h1 {
+  margin-top:20px;
 }
 
-.card {
-  background:#222;
-  padding:20px;
+.menu {
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  margin-top:30px;
+}
+
+.gameCard {
+  width:150px;
+  height:150px;
+  background:#111;
+  border-radius:15px;
   cursor:pointer;
-  border-radius:10px;
+  transition:0.3s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+}
+
+.gameCard:hover {
+  transform:scale(1.1);
+  background:#333;
 }
 
 canvas {
-  display:none;
-  border:3px solid lime;
+  margin-top:20px;
+  border:4px solid lime;
   background:black;
+}
+
+.controls {
+  margin-top:10px;
+}
+button {
+  padding:10px;
+  margin:5px;
+  background:lime;
+  border:none;
+  cursor:pointer;
+  font-weight:bold;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🎮 Start Coding</h1>
+<h1>🎮 Start Coding - Game Hub</h1>
 
-<div class="menu" id="menu">
-  <div class="card" onclick="snakeGame()">🐍 Snake.io</div>
-  <div class="card" onclick="clickGame()">🖱 Click Game</div>
-  <div class="card" onclick="dodgeGame()">⚡ Dodge</div>
-  <div class="card" onclick="runnerGame()">🏃 Runner</div>
+<div id="menu" class="menu">
+  <div class="gameCard" onclick="startSnake()">🐍 Snake.io</div>
+  <div class="gameCard" onclick="startClick()">⚡ Click Game</div>
 </div>
 
-<canvas id="game" width="900" height="600"></canvas>
-<br>
-<button onclick="back()">⬅ Back</button>
+<canvas id="game" width="900" height="550"></canvas>
+
+<div class="controls">
+  <button onclick="goMenu()">🏠 Menu</button>
+  <button onclick="restart()">🔄 Restart</button>
+</div>
 
 <script>
 let canvas=document.getElementById("game");
 let ctx=canvas.getContext("2d");
-let loop;
 
-/* MENU */
-function showGame(){
-  document.getElementById("menu").style.display="none";
-  canvas.style.display="block";
-}
-function back(){
-  clearInterval(loop);
-  location.reload();
-}
+let game="menu";
+let snake=[], bots=[], food=[];
+let mouseX=450, mouseY=275;
 
-/* 🐍 SNAKE AVEC KILL + LOOT */
-function snakeGame(){
-  showGame();
+canvas.addEventListener("mousemove",(e)=>{
+  let rect=canvas.getBoundingClientRect();
+  mouseX=e.clientX-rect.left;
+  mouseY=e.clientY-rect.top;
+});
 
-  let player={x:400,y:300,size:10,trail:[]};
-  let bots=[];
-  let food=[];
+// ================= SNAKE =================
+function startSnake(){
+  game="snake";
+  snake=[{x:450,y:275}];
+  bots=[];
+  food=[];
 
-  for(let i=0;i<5;i++){
-    bots.push({x:Math.random()*900,y:Math.random()*600,size:10,trail:[]});
+  for(let i=0;i<6;i++){
+    bots.push({x:Math.random()*900,y:Math.random()*550});
   }
 
-  for(let i=0;i<30;i++){
-    food.push({x:Math.random()*900,y:Math.random()*600});
+  for(let i=0;i<150;i++){
+    food.push({x:Math.random()*900,y:Math.random()*550});
   }
 
-  document.onmousemove=e=>{
-    player.x=e.offsetX;
-    player.y=e.offsetY;
-  };
+  loop();
+}
 
-  loop=setInterval(()=>{
-    ctx.clearRect(0,0,900,600);
+function updateSnake(){
+  ctx.fillStyle="black";
+  ctx.fillRect(0,0,900,550);
 
-    /* FOOD */
-    ctx.fillStyle="orange";
-    food.forEach(f=>ctx.fillRect(f.x,f.y,6,6));
+  // food
+  ctx.fillStyle="orange";
+  food.forEach(f=>ctx.fillRect(f.x,f.y,6,6));
 
-    /* PLAYER */
-    player.trail.push({x:player.x,y:player.y});
-    if(player.trail.length>player.size) player.trail.shift();
+  // snake
+  ctx.fillStyle="lime";
+  snake.forEach(s=>ctx.fillRect(s.x,s.y,8,8));
 
-    ctx.fillStyle="lime";
-    player.trail.forEach(p=>ctx.fillRect(p.x,p.y,8,8));
+  // movement smooth
+  snake[0].x += (mouseX - snake[0].x)*0.05;
+  snake[0].y += (mouseY - snake[0].y)*0.05;
 
-    /* BOTS */
-    bots.forEach((b,i)=>{
-      b.x+=(Math.random()-0.5)*5;
-      b.y+=(Math.random()-0.5)*5;
+  // bots
+  ctx.fillStyle="red";
+  bots.forEach(b=>{
+    b.x += Math.random()*6-3;
+    b.y += Math.random()*6-3;
+    ctx.fillRect(b.x,b.y,8,8);
 
-      b.trail.push({x:b.x,y:b.y});
-      if(b.trail.length>b.size) b.trail.shift();
-
-      ctx.fillStyle="red";
-      b.trail.forEach(p=>ctx.fillRect(p.x,p.y,8,8));
-
-      /* KILL BOT */
-      b.trail.forEach(p=>{
-        if(Math.abs(player.x-p.x)<6 && Math.abs(player.y-p.y)<6){
-          // loot
-          for(let k=0;k<10;k++){
-            food.push({x:b.x,y:b.y});
-          }
-          bots.splice(i,1);
-        }
-      });
-    });
-
-    /* EAT */
-    food.forEach((f,i)=>{
-      if(Math.abs(player.x-f.x)<10 && Math.abs(player.y-f.y)<10){
-        player.size+=1;
-        food.splice(i,1);
+    // kill bot
+    if(Math.abs(b.x-snake[0].x)<10 && Math.abs(b.y-snake[0].y)<10){
+      for(let i=0;i<15;i++){
+        food.push({x:b.x,y:b.y});
       }
-    });
+      b.x=Math.random()*900;
+      b.y=Math.random()*550;
+    }
+  });
 
-  },50);
+  // eat food
+  food = food.filter(f=>{
+    if(Math.abs(f.x-snake[0].x)<10 && Math.abs(f.y-snake[0].y)<10){
+      snake.push({...snake[snake.length-1]});
+      return false;
+    }
+    return true;
+  });
 }
 
-/* 🖱 CLICK GAME */
-function clickGame(){
-  showGame();
+// ================= CLICK GAME =================
+let clickScore=0, clickTime=10, clickRunning=false;
 
-  let score=0;
-  let time=10;
-
-  canvas.onclick=()=>score++;
+function startClick(){
+  game="click";
+  clickScore=0;
+  clickTime=10;
+  clickRunning=true;
 
   let timer=setInterval(()=>{
-    time--;
-    if(time<=0){
+    clickTime--;
+    if(clickTime<=0){
       clearInterval(timer);
-      clearInterval(loop);
-      alert("Score: "+score);
+      clickRunning=false;
+      alert("🔥 Score: "+clickScore);
     }
   },1000);
 
-  loop=setInterval(()=>{
-    ctx.clearRect(0,0,900,600);
-    ctx.fillStyle="white";
-    ctx.font="40px Arial";
-    ctx.fillText("Score: "+score,350,250);
-    ctx.fillText("Time: "+time,350,300);
-  },50);
-}
-
-/* ⚡ DODGE GAME */
-function dodgeGame(){
-  showGame();
-
-  let player={x:400,y:300};
-  let enemies=[];
-
-  document.onmousemove=e=>{
-    player.x=e.offsetX;
-    player.y=e.offsetY;
+  canvas.onclick=()=>{
+    if(clickRunning) clickScore++;
   };
 
-  loop=setInterval(()=>{
-    ctx.clearRect(0,0,900,600);
-
-    enemies.push({x:Math.random()*900,y:0});
-
-    enemies.forEach(e=>{
-      e.y+=5;
-      ctx.fillStyle="red";
-      ctx.fillRect(e.x,e.y,10,10);
-
-      if(Math.abs(player.x-e.x)<10 && Math.abs(player.y-e.y)<10){
-        alert("Game Over");
-        location.reload();
-      }
-    });
-
-    ctx.fillStyle="lime";
-    ctx.fillRect(player.x,player.y,10,10);
-
-  },50);
+  loop();
 }
 
-/* 🏃 RUNNER */
-function runnerGame(){
-  showGame();
+function updateClick(){
+  ctx.fillStyle="#111";
+  ctx.fillRect(0,0,900,550);
 
-  let player={x:100,y:500,vy:0};
-  let gravity=1;
-  let obstacles=[];
+  ctx.fillStyle="white";
+  ctx.font="30px Arial";
+  ctx.fillText("Clicks: "+clickScore,350,250);
+  ctx.fillText("Time: "+clickTime,370,300);
+}
 
-  document.onkeydown=e=>{
-    if(e.key===" " && player.y>=500){
-      player.vy=-15;
-    }
-  };
+// ================= LOOP =================
+function loop(){
+  if(game==="snake") updateSnake();
+  if(game==="click") updateClick();
 
-  loop=setInterval(()=>{
-    ctx.clearRect(0,0,900,600);
+  requestAnimationFrame(loop);
+}
 
-    player.vy+=gravity;
-    player.y+=player.vy;
+// ================= MENU =================
+function goMenu(){
+  game="menu";
+  ctx.clearRect(0,0,900,550);
+}
 
-    if(player.y>500){
-      player.y=500;
-      player.vy=0;
-    }
-
-    obstacles.push({x:900,y:520});
-
-    obstacles.forEach(o=>{
-      o.x-=5;
-      ctx.fillRect(o.x,o.y,20,20);
-
-      if(Math.abs(player.x-o.x)<20 && Math.abs(player.y-o.y)<20){
-        alert("Game Over");
-        location.reload();
-      }
-    });
-
-    ctx.fillStyle="lime";
-    ctx.fillRect(player.x,player.y,20,20);
-
-  },50);
+// restart
+function restart(){
+  if(game==="snake") startSnake();
+  if(game==="click") startClick();
 }
 </script>
 
