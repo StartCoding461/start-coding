@@ -1,75 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr"><!DOCTYPE html>
-  voice=!voice;
-}
-
-// ===== UI =====
-function add(text,type){
-  let d=document.createElement("div");
-  d.textContent=text;
-  d.className="message "+type;
-  messages.appendChild(d);
-  messages.scrollTop=messages.scrollHeight;
-  if(type==="bot") speak(text);
-}
-
-function setMode(m,b){
-  mode=m;
-  document.querySelectorAll("#top button").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");
-  add("Mode : "+m,"bot");
-  currentAnswer=null;
-  if(m==="exercice") newExercise();
-}
-
-// ===== ENVOI =====
-function send(){
-  let t=input.value.trim();
-  if(!t) return;
-  add(t,"user");
-  input.value="";
-
-  if(mode==="libre") add(calculate(t),"bot");
-  else check(t);
-}
-
-// ===== CALCUL PRO =====
-function calculate(expr){
-  try{
-    let r=Function("return "+expr)();
-    return `🧮 Calcul:
-${expr}
-
-✅ Résultat = ${r}`;
-  }catch{
-    return "❌ Erreur";
-  }
-}
-
-// ===== EXERCICES =====
-function newExercise(){
-  let a=Math.floor(Math.random()*10)+1;
-  let b=Math.floor(Math.random()*10)+1;
-  currentAnswer=a+b;
-  add(`📝 Calcule : ${a} + ${b}`,"bot");
-}
-
-function check(t){
-  if(Number(t)==currentAnswer){
-    add("✅ Correct !","bot");
-  }else{
-    add(`❌ Faux → ${currentAnswer}`,"bot");
-  }
-  newExercise();
-}
-
-// START
-add("🤖 MathBot PRO++ prêt ! Tape un calcul 🔥","bot");
-</script>
-
-</body>
-</html>
-
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
 <title>MathBot PRO++</title>
@@ -79,7 +9,7 @@ add("🤖 MathBot PRO++ prêt ! Tape un calcul 🔥","bot");
 body{
   margin:0;
   font-family:Arial;
-  background:#0f2027;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
   display:flex;
   justify-content:center;
   align-items:center;
@@ -88,8 +18,7 @@ body{
 
 #app{
   width:95%;
-  max-width:900px;
-  height:90%;
+  max-width:500px;
   background:#1c1c1c;
   border-radius:20px;
   display:flex;
@@ -117,16 +46,16 @@ button{
 .active{background:#0b84ff;}
 
 #messages{
-  flex:1;
-  padding:15px;
+  height:200px;
   overflow-y:auto;
+  padding:10px;
   background:#222;
 }
 
 .msg{
-  margin:8px 0;
-  padding:12px;
-  border-radius:15px;
+  margin:5px 0;
+  padding:10px;
+  border-radius:10px;
   max-width:80%;
 }
 
@@ -135,20 +64,22 @@ button{
 
 #display{
   padding:15px;
-  background:#111;
-  font-size:20px;
+  background:#000;
+  color:#0f0;
+  font-size:22px;
+  text-align:right;
 }
 
 #pad{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:10px;
+  gap:8px;
   padding:10px;
   background:#111;
 }
 
 .key{
-  padding:20px;
+  padding:18px;
   font-size:18px;
   background:#333;
   border-radius:10px;
@@ -156,8 +87,9 @@ button{
   cursor:pointer;
 }
 
-.key:hover{background:#0b84ff;}
-
+.key:hover{
+  background:#0b84ff;
+}
 </style>
 </head>
 
@@ -183,10 +115,11 @@ button{
 
 let level="easy";
 let input="";
+
 const display=document.getElementById("display");
 const messages=document.getElementById("messages");
 
-// ===== AFFICHER MESSAGE =====
+// ===== MESSAGE =====
 function add(text,type){
   const d=document.createElement("div");
   d.className="msg "+type;
@@ -195,15 +128,15 @@ function add(text,type){
   messages.scrollTop=messages.scrollHeight;
 }
 
-// ===== NIVEAUX =====
+// ===== LEVEL =====
 function setLevel(l,btn){
   level=l;
   document.querySelectorAll("#top button").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
-  add("Level: "+l,"bot");
+  add("📊 Level: "+l,"bot");
 }
 
-// ===== CLAVIER =====
+// ===== KEYPAD =====
 const keys=[
 "7","8","9","/",
 "4","5","6","*",
@@ -245,91 +178,18 @@ function calculate(){
 
     add("🧮 "+input,"user");
     add("✅ Result: "+result,"bot");
-<!DOCTYPE html>
-  voice=!voice;
-}
 
-// ===== UI =====
-function add(text,type){
-  let d=document.createElement("div");
-  d.textContent=text;
-  d.className="message "+type;
-  messages.appendChild(d);
-  messages.scrollTop=messages.scrollHeight;
-  if(type==="bot") speak(text);
-}
+    input="";
+    display.textContent="0";
 
-function setMode(m,b){
-  mode=m;
-  document.querySelectorAll("#top button").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");
-  add("Mode : "+m,"bot");
-  currentAnswer=null;
-  if(m==="exercice") newExercise();
-}
-
-// ===== ENVOI =====
-function send(){
-  let t=input.value.trim();
-  if(!t) return;
-  add(t,"user");
-  input.value="";
-
-  if(mode==="libre") add(calculate(t),"bot");
-  else check(t);
-}
-
-// ===== CALCUL PRO =====
-function calculate(expr){
-  try{
-    let r=Function("return "+expr)();
-    return `🧮 Calcul:
-${expr}
-
-✅ Résultat = ${r}`;
   }catch{
-    return "❌ Erreur";
+    add("❌ Error in calculation","bot");
+    input="";
+    display.textContent="0";
   }
-}
-
-// ===== EXERCICES =====
-function newExercise(){
-  let a=Math.floor(Math.random()*10)+1;
-  let b=Math.floor(Math.random()*10)+1;
-  currentAnswer=a+b;
-  add(`📝 Calcule : ${a} + ${b}`,"bot");
-}
-
-function check(t){
-  if(Number(t)==currentAnswer){
-    add("✅ Correct !","bot");
-  }else{
-    add(`❌ Faux → ${currentAnswer}`,"bot");
-  }
-  newExercise();
 }
 
 // START
-add("🤖 MathBot PRO++ prêt ! Tape un calcul 🔥","bot");
-</script>
-
-</body>
-</html>
-
-    // difficulté
-    if(level==="medium") result*=1;
-    if(level==="hard") result*=1;
-
-    input="";
-    display.textContent="0";
-
-  }catch{
-    add("❌ Error","bot");
-    input="";
-    display.textContent="0";
-  }
-}
-
 add("🔥 MathBot PRO++ ready. Use the keypad.","bot");
 
 </script>
