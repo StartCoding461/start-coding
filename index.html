@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MathBot ULTRA GOD</title>
+<title>Math Game</title>
 
 <style>
 body{
 margin:0;
 font-family:Arial;
-background:linear-gradient(135deg,#0f2027,#2c5364);
+background:#0f2027;
 color:white;
 display:flex;
 justify-content:center;
@@ -19,37 +19,36 @@ height:100vh;
 
 #app{
 width:100%;
-max-width:500px;
-background:#111;
-border-radius:20px;
+max-width:420px;
 padding:15px;
+background:#111;
+border-radius:15px;
 }
 
-h1{text-align:center;font-size:22px;}
+h1{text-align:center;}
 
 .top{
 display:flex;
-justify-content:center;
 gap:5px;
-flex-wrap:wrap;
 margin-bottom:10px;
 }
 
 button{
-padding:8px;
+flex:1;
+padding:10px;
 border:none;
 border-radius:10px;
 background:#333;
 color:white;
-flex:1;
+font-size:16px;
 }
 
 .active{background:#00ff88;color:black;}
 
 #display{
 text-align:center;
-font-size:26px;
-margin:10px;
+font-size:28px;
+margin:10px 0;
 }
 
 #input{
@@ -58,8 +57,8 @@ padding:15px;
 font-size:22px;
 border-radius:10px;
 border:none;
-margin-bottom:10px;
 text-align:center;
+margin-bottom:10px;
 }
 
 .keypad{
@@ -76,7 +75,6 @@ font-size:18px;
 #stats{
 text-align:center;
 margin-top:10px;
-font-size:14px;
 }
 </style>
 </head>
@@ -85,21 +83,15 @@ font-size:14px;
 
 <div id="app">
 
-<h1>🔥 ULTRA GOD</h1>
+<h1>🔥 Math Game</h1>
 
 <div class="top">
 <button onclick="setMode('free',this)" class="active">Libre</button>
 <button onclick="setMode('game',this)">Jeu</button>
 </div>
 
-<div class="top">
-<button onclick="setLevel('easy',this)" class="active">Easy</button>
-<button onclick="setLevel('medium',this)">Medium</button>
-<button onclick="setLevel('hard',this)">Hard</button>
-<button onclick="setLevel('god',this)">GOD</button>
-</div>
+<div id="display">Tap OK</div>
 
-<div id="display">Ready...</div>
 <input id="input" readonly>
 
 <div class="keypad">
@@ -135,51 +127,24 @@ font-size:14px;
 
 <script>
 
-// ===== SOUND =====
-function beep(freq){
-let ctx=new AudioContext();
-let o=ctx.createOscillator();
-let g=ctx.createGain();
-o.connect(g); g.connect(ctx.destination);
-o.frequency.value=freq;
-o.start();
-g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.2);
-}
-
-// ===== VAR =====
+// ===== STATE =====
 let mode="free";
-let level="easy";
 let score=0;
-let combo=0;
-let coins=Number(localStorage.getItem("coins")||0);
-let best=Number(localStorage.getItem("best")||0);
-let answer=0;
 let time=10;
-let timer;
+let answer=0;
+let timer=null;
 
 // ===== INPUT =====
 function p(v){input.value+=v;}
 function clearI(){input.value="";}
 function back(){input.value=input.value.slice(0,-1);}
 
-// ===== UI ACTIVE =====
-function setActive(group,btn){
-group.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
-btn.classList.add("active");
-}
-
 // ===== MODE =====
 function setMode(m,btn){
 mode=m;
-setActive(btn.parentNode,btn);
-resetGame();
-if(mode==="game") start();
-}
-
-// ===== LEVEL =====
-function setLevel(l,btn){
-level=l;
-setActive(btn.parentNode,btn);
+document.querySelectorAll(".top button").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
+reset();
 }
 
 // ===== CALC =====
@@ -189,93 +154,67 @@ catch{return null;}
 }
 
 // ===== GAME =====
-function start(){
+function startGame(){
 time=10;
 score=0;
-combo=0;
+
 nextQ();
 
 timer=setInterval(()=>{
 time--;
-updateHUD();
-if(time<=0) end();
+stats.textContent="⏱ "+time+" | Score "+score;
+
+if(time<=0){
+clearInterval(timer);
+alert("Score: "+score);
+reset();
+}
 },1000);
 }
 
 function nextQ(){
-let a,b,op;
-
-if(level==="easy"){a=rand(1,10);b=rand(1,10);op="+";}
-if(level==="medium"){a=rand(1,20);b=rand(1,20);op=["+","-"][rand(0,1)];}
-if(level==="hard"){a=rand(1,50);b=rand(1,10);op=["+","-","*"][rand(0,2)];}
-if(level==="god"){a=rand(10,100);b=rand(1,20);op=["+","-","*","/"][rand(0,3)];}
-
-if(op==="/"){a=b*(rand(1,10));}
-
-answer=calc(a+op+b);
-display.textContent=a+" "+op+" "+b;
+let a=Math.floor(Math.random()*10);
+let b=Math.floor(Math.random()*10);
+answer=a+b;
+display.textContent=a+" + "+b;
 clearI();
 }
 
 // ===== VALIDATE =====
 function validate(){
-let val=Number(input.value);
 
 if(mode==="free"){
-display.textContent="= "+calc(input.value);
+let r=calc(input.value);
+display.textContent="= "+r;
 clearI();
 return;
 }
 
-if(val===answer){
-beep(600);
-combo++;
-score+=1+combo;
-coins+=1;
-time+=1;
-}else{
-beep(200);
-combo=0;
-time-=2;
+if(!timer){
+startGame();
+return;
 }
 
+let val=Number(input.value);
+
+if(val===answer){
+score++;
 nextQ();
-updateHUD();
+}else{
+time-=1;
+}
+
 clearI();
 }
 
-// ===== HUD =====
-function updateHUD(){
-stats.textContent=`⏱ ${time}s | Score ${score} | Combo ${combo} | 💰 ${coins} | 🏆 ${best}`;
-}
-
-// ===== END =====
-function end(){
+// ===== RESET =====
+function reset(){
 clearInterval(timer);
-beep(100);
-
-if(score>best){
-best=score;
-localStorage.setItem("best",best);
+timer=null;
+display.textContent="Tap OK";
+stats.textContent="";
+clearI();
 }
-
-localStorage.setItem("coins",coins);
-
-alert("FIN 🔥 Score: "+score);
-location.reload();
-}
-
-// ===== UTIL =====
-function rand(min,max){
-return Math.floor(Math.random()*(max-min+1))+min;
-}
-
-function resetGame(){
-clearInterval(timer);
-updateHUD();
-}
-
-updateHUD();
 
 </script>
 
