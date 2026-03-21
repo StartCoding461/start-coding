@@ -2,14 +2,14 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>MathBot PRO++</title>
+<title>MathBot GAME PRO MAX</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
   margin:0;
   font-family:Arial;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  background:linear-gradient(135deg,#141e30,#243b55);
   display:flex;
   justify-content:center;
   align-items:center;
@@ -21,9 +21,9 @@ body{
   max-width:500px;
   background:#1c1c1c;
   border-radius:20px;
+  overflow:hidden;
   display:flex;
   flex-direction:column;
-  overflow:hidden;
 }
 
 #top{
@@ -46,28 +46,29 @@ button{
 .active{background:#0b84ff;}
 
 #messages{
-  height:200px;
-  overflow-y:auto;
+  height:150px;
+  overflow:auto;
   padding:10px;
   background:#222;
 }
 
-.msg{
-  margin:5px 0;
-  padding:10px;
-  border-radius:10px;
-  max-width:80%;
-}
-
-.user{background:#0b84ff; align-self:flex-end;}
+.msg{padding:8px;margin:5px;border-radius:10px;}
 .bot{background:#333;}
+.user{background:#0b84ff;}
 
 #display{
   padding:15px;
-  background:#000;
+  background:black;
   color:#0f0;
-  font-size:22px;
+  font-size:24px;
   text-align:right;
+}
+
+#timer{
+  height:8px;
+  background:red;
+  width:100%;
+  transition:width 1s linear;
 }
 
 #pad{
@@ -80,16 +81,16 @@ button{
 
 .key{
   padding:18px;
-  font-size:18px;
   background:#333;
-  border-radius:10px;
   text-align:center;
+  border-radius:10px;
   cursor:pointer;
+  font-size:18px;
 }
 
-.key:hover{
-  background:#0b84ff;
-}
+.key:hover{background:#0b84ff;}
+.good{background:#0f0!important;}
+.bad{background:#f00!important;}
 </style>
 </head>
 
@@ -98,26 +99,40 @@ button{
 <div id="app">
 
 <div id="top">
-<button class="active" onclick="setLevel('easy',this)">Easy</button>
-<button onclick="setLevel('medium',this)">Medium</button>
-<button onclick="setLevel('hard',this)">Hard</button>
+<button class="active" onclick="setMode('free',this)">Libre</button>
+<button onclick="setMode('game',this)">🎮 Jeu</button>
 </div>
 
+<div id="timer"></div>
 <div id="messages"></div>
-
 <div id="display">0</div>
-
 <div id="pad"></div>
 
 </div>
 
 <script>
 
-let level="easy";
+let mode="free";
 let input="";
+let score=0;
+let best=localStorage.getItem("best")||0;
+let time=10;
+let currentAnswer=null;
+let timer;
 
 const display=document.getElementById("display");
 const messages=document.getElementById("messages");
+const bar=document.getElementById("timer");
+
+// ===== SON =====
+function beep(freq){
+  const ctx=new AudioContext();
+  const osc=ctx.createOscillator();
+  osc.frequency.value=freq;
+  osc.connect(ctx.destination);
+  osc.start();
+  setTimeout(()=>osc.stop(),100);
+}
 
 // ===== MESSAGE =====
 function add(text,type){
@@ -128,69 +143,117 @@ function add(text,type){
   messages.scrollTop=messages.scrollHeight;
 }
 
-// ===== LEVEL =====
-function setLevel(l,btn){
-  level=l;
+// ===== MODE =====
+function setMode(m,btn){
+  mode=m;
   document.querySelectorAll("#top button").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
-  add("📊 Level: "+l,"bot");
+
+  if(mode==="game"){
+    startGame();
+  }else{
+    add("🧮 Mode libre","bot");
+  }
 }
 
-// ===== KEYPAD =====
-const keys=[
-"7","8","9","/",
-"4","5","6","*",
-"1","2","3","-",
-"0",".","(",")",
-"+","C","="];
-
+// ===== KEYS =====
+const keys=["7","8","9","/","4","5","6","*","1","2","3","-","0",".","(",")","+","C","="];
 const pad=document.getElementById("pad");
 
 keys.forEach(k=>{
-  const b=document.createElement("div");
+  let b=document.createElement("div");
   b.className="key";
   b.textContent=k;
-  b.onclick=()=>press(k);
+  b.onclick=()=>press(k,b);
   pad.appendChild(b);
 });
 
-// ===== ACTION =====
-function press(k){
+// ===== PRESS =====
+function press(k,btn){
+  btn.classList.add("good");
+  setTimeout(()=>btn.classList.remove("good"),100);
 
-  if(k==="C"){
-    input="";
-  }
-  else if(k==="="){
-    calculate();
-    return;
-  }
-  else{
-    input+=k;
-  }
+  if(k==="C"){input="";}
+  else if(k==="="){validate();return;}
+  else{input+=k;}
 
-  display.textContent=input || "0";
+  display.textContent=input||"0";
 }
 
-// ===== CALCUL =====
+// ===== LIBRE =====
 function calculate(){
   try{
-    let result=Function("return "+input)();
-
+    let r=Function("return "+input)();
     add("🧮 "+input,"user");
-    add("✅ Result: "+result,"bot");
-
-    input="";
-    display.textContent="0";
-
+    add("✅ "+r,"bot");
+    beep(600);
   }catch{
-    add("❌ Error in calculation","bot");
-    input="";
-    display.textContent="0";
+    add("❌ erreur","bot");
+    beep(200);
   }
+  input="";
+  display.textContent="0";
+}
+
+// ===== GAME =====
+function startGame(){
+  score=0;
+  time=10;
+  add("🎮 GO !","bot");
+  add("🏆 Best: "+best,"bot");
+
+  nextQ();
+
+  clearInterval(timer);
+  timer=setInterval(()=>{
+    time--;
+    bar.style.width=(time*10)+"%";
+
+    if(time<=0){
+      clearInterval(timer);
+      add("⏱️ FIN Score: "+score,"bot");
+      if(score>best){
+        best=score;
+        localStorage.setItem("best",best);
+        add("🏆 NEW RECORD !","bot");
+      }
+    }
+  },1000);
+}
+
+// ===== QUESTION =====
+function nextQ(){
+  let a=Math.floor(Math.random()*10+1);
+  let b=Math.floor(Math.random()*10+1);
+  let ops=["+","-","*"];
+  let op=ops[Math.floor(Math.random()*ops.length)];
+
+  currentAnswer=eval(a+op+b);
+  add("👉 "+a+" "+op+" "+b,"bot");
+}
+
+// ===== VALID =====
+function validate(){
+  if(mode==="free"){calculate();return;}
+
+  let val=Number(input);
+
+  if(val===currentAnswer){
+    score++;
+    add("✅","bot");
+    beep(800);
+  }else{
+    add("❌","bot");
+    beep(200);
+  }
+
+  input="";
+  display.textContent="0";
+  nextQ();
 }
 
 // START
-add("🔥 MathBot PRO++ ready. Use the keypad.","bot");
+add("🔥 GAME PRO MAX READY","bot");
 
 </script>
 
