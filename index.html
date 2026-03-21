@@ -1,127 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>MathBot PRO++</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-  color:white;
-}
-
-#chat{
-  width:95%;
-  max-width:1100px;
-  height:90%;
-  background:#1a1a1a;
-  border-radius:15px;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-
-#top{
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  padding:10px;
-  background:#111;
-}
-
-button{
-  padding:8px 14px;
-  border:none;
-  border-radius:12px;
-  background:#333;
-  color:white;
-  cursor:pointer;
-}
-
-button.active{background:#0b84ff}
-
-#messages{
-  flex:1;
-  padding:15px;
-  overflow-y:auto;
-  background:#222;
-}
-
-.message{
-  margin:8px 0;
-  padding:12px 18px;
-  border-radius:20px;
-  max-width:80%;
-  white-space:pre-line;
-}
-
-.user{background:#0b84ff; align-self:flex-end}
-.bot{background:#333; align-self:flex-start}
-
-#inputArea{
-  display:flex;
-  padding:12px;
-  background:#111;
-}
-
-input{
-  flex:1;
-  padding:12px;
-  border:none;
-  border-radius:15px;
-  font-size:16px;
-}
-</style>
-</head>
-
-<body>
-
-<div id="chat">
-
-<div id="top">
-<button onclick="setMode('libre',this)" class="active">🆓 Libre</button>
-<button onclick="setMode('exercice',this)">📝 Exercice</button>
-<button onclick="toggleVoice()">🔊 Voix</button>
-</div>
-
-<div id="messages"></div>
-
-<div id="inputArea">
-<input id="input" placeholder="Ex: 5+3*(2+1)">
-<button onclick="send()">Envoyer</button>
-</div>
-
-</div>
-
-<script>
-let mode="libre", currentAnswer=null, voice=true;
-
-// ===== BLOQUER CLAVIER =====
-const allowed="0123456789+-*/().";
-
-input.addEventListener("keypress", (e)=>{
-  if(!allowed.includes(e.key)){
-    e.preventDefault();
-  }
-});
-
-// ===== VOIX =====
-function speak(t){
-  if(!voice) return;
-  let u=new SpeechSynthesisUtterance(t);
-  u.lang="fr-FR";
-  u.rate=0.9;
-  speechSynthesis.speak(u);
-}
-
-function toggleVoice(){
+<html lang="fr"><!DOCTYPE html>
   voice=!voice;
 }
 
@@ -187,6 +65,273 @@ function check(t){
 
 // START
 add("🤖 MathBot PRO++ prêt ! Tape un calcul 🔥","bot");
+</script>
+
+</body>
+</html>
+
+<head>
+<meta charset="UTF-8">
+<title>MathBot PRO++</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0f2027;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+#app{
+  width:95%;
+  max-width:900px;
+  height:90%;
+  background:#1c1c1c;
+  border-radius:20px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+#top{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  padding:10px;
+  background:#111;
+}
+
+button{
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:#333;
+  color:white;
+  cursor:pointer;
+}
+
+.active{background:#0b84ff;}
+
+#messages{
+  flex:1;
+  padding:15px;
+  overflow-y:auto;
+  background:#222;
+}
+
+.msg{
+  margin:8px 0;
+  padding:12px;
+  border-radius:15px;
+  max-width:80%;
+}
+
+.user{background:#0b84ff; align-self:flex-end;}
+.bot{background:#333;}
+
+#display{
+  padding:15px;
+  background:#111;
+  font-size:20px;
+}
+
+#pad{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  padding:10px;
+  background:#111;
+}
+
+.key{
+  padding:20px;
+  font-size:18px;
+  background:#333;
+  border-radius:10px;
+  text-align:center;
+  cursor:pointer;
+}
+
+.key:hover{background:#0b84ff;}
+
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+<div id="top">
+<button class="active" onclick="setLevel('easy',this)">Easy</button>
+<button onclick="setLevel('medium',this)">Medium</button>
+<button onclick="setLevel('hard',this)">Hard</button>
+</div>
+
+<div id="messages"></div>
+
+<div id="display">0</div>
+
+<div id="pad"></div>
+
+</div>
+
+<script>
+
+let level="easy";
+let input="";
+const display=document.getElementById("display");
+const messages=document.getElementById("messages");
+
+// ===== AFFICHER MESSAGE =====
+function add(text,type){
+  const d=document.createElement("div");
+  d.className="msg "+type;
+  d.textContent=text;
+  messages.appendChild(d);
+  messages.scrollTop=messages.scrollHeight;
+}
+
+// ===== NIVEAUX =====
+function setLevel(l,btn){
+  level=l;
+  document.querySelectorAll("#top button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  add("Level: "+l,"bot");
+}
+
+// ===== CLAVIER =====
+const keys=[
+"7","8","9","/",
+"4","5","6","*",
+"1","2","3","-",
+"0",".","(",")",
+"+","C","="];
+
+const pad=document.getElementById("pad");
+
+keys.forEach(k=>{
+  const b=document.createElement("div");
+  b.className="key";
+  b.textContent=k;
+  b.onclick=()=>press(k);
+  pad.appendChild(b);
+});
+
+// ===== ACTION =====
+function press(k){
+
+  if(k==="C"){
+    input="";
+  }
+  else if(k==="="){
+    calculate();
+    return;
+  }
+  else{
+    input+=k;
+  }
+
+  display.textContent=input || "0";
+}
+
+// ===== CALCUL =====
+function calculate(){
+  try{
+    let result=Function("return "+input)();
+
+    add("🧮 "+input,"user");
+    add("✅ Result: "+result,"bot");
+<!DOCTYPE html>
+  voice=!voice;
+}
+
+// ===== UI =====
+function add(text,type){
+  let d=document.createElement("div");
+  d.textContent=text;
+  d.className="message "+type;
+  messages.appendChild(d);
+  messages.scrollTop=messages.scrollHeight;
+  if(type==="bot") speak(text);
+}
+
+function setMode(m,b){
+  mode=m;
+  document.querySelectorAll("#top button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  add("Mode : "+m,"bot");
+  currentAnswer=null;
+  if(m==="exercice") newExercise();
+}
+
+// ===== ENVOI =====
+function send(){
+  let t=input.value.trim();
+  if(!t) return;
+  add(t,"user");
+  input.value="";
+
+  if(mode==="libre") add(calculate(t),"bot");
+  else check(t);
+}
+
+// ===== CALCUL PRO =====
+function calculate(expr){
+  try{
+    let r=Function("return "+expr)();
+    return `🧮 Calcul:
+${expr}
+
+✅ Résultat = ${r}`;
+  }catch{
+    return "❌ Erreur";
+  }
+}
+
+// ===== EXERCICES =====
+function newExercise(){
+  let a=Math.floor(Math.random()*10)+1;
+  let b=Math.floor(Math.random()*10)+1;
+  currentAnswer=a+b;
+  add(`📝 Calcule : ${a} + ${b}`,"bot");
+}
+
+function check(t){
+  if(Number(t)==currentAnswer){
+    add("✅ Correct !","bot");
+  }else{
+    add(`❌ Faux → ${currentAnswer}`,"bot");
+  }
+  newExercise();
+}
+
+// START
+add("🤖 MathBot PRO++ prêt ! Tape un calcul 🔥","bot");
+</script>
+
+</body>
+</html>
+
+    // difficulté
+    if(level==="medium") result*=1;
+    if(level==="hard") result*=1;
+
+    input="";
+    display.textContent="0";
+
+  }catch{
+    add("❌ Error","bot");
+    input="";
+    display.textContent="0";
+  }
+}
+
+add("🔥 MathBot PRO++ ready. Use the keypad.","bot");
+
 </script>
 
 </body>
