@@ -1,95 +1,232 @@
-// ===== USER =====
-let player = localStorage.getItem("player") || prompt("Enter your name:");
-localStorage.setItem("player", player);
-
-// ===== COINS =====
-let coins = Number(localStorage.getItem("coins")||0);
-
-// ===== COMBO =====
-let combo = 0;
-
-// ===== LEADERBOARD =====
-let board = JSON.parse(localStorage.getItem("board")||"[]");
-
-// ===== MESSAGE START =====
-add("👤 Player: "+player,"bot");
-add("💰 Coins: "+coins,"bot");
-
-// ===== BOOST SCORE =====
-function reward(){
-  combo++;
-  let gain = 1 + Math.floor(combo/3);
-  coins += gain;
-
-  add("🔥 Combo x"+combo+" | +"+gain+" coins","bot");
-
-  localStorage.setItem("coins",coins);
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MathBot GOD</title>
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
 }
 
-// ===== RESET COMBO =====
-function resetCombo(){
-  combo=0;
+#app{
+width:95%;
+max-width:900px;
+background:#111;
+border-radius:20px;
+padding:20px;
+box-shadow:0 0 30px #000;
 }
 
-// ===== SAVE SCORE =====
-function saveScore(score){
-  board.push({name:player,score:score});
-  board.sort((a,b)=>b.score-a.score);
-  board=board.slice(0,5);
-  localStorage.setItem("board",JSON.stringify(board));
+h1{text-align:center;}
+
+.top{
+display:flex;
+justify-content:center;
+gap:10px;
+margin-bottom:10px;
+flex-wrap:wrap;
 }
 
-// ===== SHOW BOARD =====
-function showBoard(){
-  add("🏆 Leaderboard:","bot");
-  board.forEach(p=>{
-    add(p.name+" : "+p.score,"bot");
-  });
+button{
+padding:8px 14px;
+border:none;
+border-radius:10px;
+background:#333;
+color:white;
+cursor:pointer;
 }
 
-// ===== SHOP =====
-function shop(){
-  add("🛒 Shop: 10 coins = Green theme","bot");
-  if(coins>=10){
-    coins-=10;
-    document.body.style.background="green";
-    add("✅ Theme acheté","bot");
-    localStorage.setItem("coins",coins);
-  }else{
-    add("❌ Pas assez de coins","bot");
-  }
+button.active{background:#00ff88;color:black;}
+
+#display{
+font-size:24px;
+text-align:center;
+margin:10px;
 }
 
-// ===== PATCH GAME =====
-// modifie ta fonction validate EXISTANTE comme ça :
+#input{
+width:100%;
+padding:15px;
+font-size:20px;
+border-radius:10px;
+border:none;
+margin-bottom:10px;
+}
 
-// remplace juste le contenu par ça 👇
+.keypad{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
+}
 
+.keypad button{
+font-size:18px;
+padding:15px;
+background:#222;
+}
+
+.keypad button:hover{background:#00ff88;color:black;}
+
+#info{
+text-align:center;
+margin-top:10px;
+}
+
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<h1>🔥 MathBot GOD</h1>
+
+<div class="top">
+<button onclick="setMode('free')" class="active">Libre</button>
+<button onclick="setMode('game')">Jeu</button>
+</div>
+
+<div class="top">
+<button onclick="setLevel('easy')">Easy</button>
+<button onclick="setLevel('medium')">Medium</button>
+<button onclick="setLevel('hard')">Hard</button>
+<button onclick="setLevel('god')">🔥 GOD</button>
+</div>
+
+<div id="display">Tape un calcul</div>
+
+<input id="input" readonly>
+
+<div class="keypad">
+<button onclick="press('7')">7</button>
+<button onclick="press('8')">8</button>
+<button onclick="press('9')">9</button>
+<button onclick="press('/')">/</button>
+
+<button onclick="press('4')">4</button>
+<button onclick="press('5')">5</button>
+<button onclick="press('6')">6</button>
+<button onclick="press('*')">*</button>
+
+<button onclick="press('1')">1</button>
+<button onclick="press('2')">2</button>
+<button onclick="press('3')">3</button>
+<button onclick="press('-')">-</button>
+
+<button onclick="press('0')">0</button>
+<button onclick="press('.')">.</button>
+<button onclick="press('(')">(</button>
+<button onclick="press(')')">)</button>
+
+<button onclick="clearInput()">C</button>
+<button onclick="validate()">OK</button>
+<button onclick="press('+')">+</button>
+<button onclick="back()">⌫</button>
+</div>
+
+<div id="info"></div>
+
+</div>
+
+<script>
+
+let mode="free";
+let level="easy";
+let answer=0;
+let score=0;
+let time=10;
+let timer;
+
+// ===== INPUT =====
+function press(v){
+document.getElementById("input").value+=v;
+}
+
+function clearInput(){
+document.getElementById("input").value="";
+}
+
+function back(){
+let i=document.getElementById("input");
+i.value=i.value.slice(0,-1);
+}
+
+// ===== MODES =====
+function setMode(m){
+mode=m;
+score=0;
+clearInterval(timer);
+document.getElementById("info").textContent="";
+if(mode==="game") startGame();
+}
+
+// ===== LEVEL =====
+function setLevel(l){
+level=l;
+}
+
+// ===== CALCUL =====
+function calculate(expr){
+try{
+return Function("return "+expr)();
+}catch{return null;}
+}
+
+// ===== GAME =====
+function startGame(){
+time=10;
+nextQuestion();
+
+timer=setInterval(()=>{
+time--;
+document.getElementById("info").textContent="⏱ "+time+"s | Score: "+score;
+if(time<=0){
+clearInterval(timer);
+alert("FIN SCORE: "+score);
+}
+},1000);
+}
+
+function nextQuestion(){
+let a=Math.floor(Math.random()*10);
+let b=Math.floor(Math.random()*10);
+
+if(level==="medium"){a*=2; b*=2;}
+if(level==="hard"){a=Math.floor(Math.random()*50); b=Math.floor(Math.random()*50);}
+if(level==="god"){a=Math.floor(Math.random()*100); b=Math.floor(Math.random()*100);}
+
+answer=a+b;
+document.getElementById("display").textContent=a+" + "+b;
+clearInput();
+}
+
+// ===== VALIDATE =====
 function validate(){
-  if(mode==="free"){calculate();return;}
+let val=document.getElementById("input").value;
 
-  let val=Number(input);
-
-  if(val===currentAnswer){
-    score++;
-    reward();
-    add("✅","bot");
-    beep(800);
-  }else{
-    resetCombo();
-    add("❌","bot");
-    beep(200);
-  }
-
-  input="";
-  display.textContent="0";
-  nextQ();
+if(mode==="free"){
+let r=calculate(val);
+document.getElementById("display").textContent="Résultat: "+r;
+clearInput();
+return;
 }
 
-// ===== PATCH FIN GAME =====
-// dans ton startGame -> fin du timer ajoute :
+if(Number(val)===answer){
+score++;
+nextQuestion();
+}else{
+alert("❌ Faux !");
+nextQuestion();
+}
+}
 
-// après "FIN Score"
+</script>
 
-saveScore(score);
-showBoard();
+</body>
+</html>
