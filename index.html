@@ -2,12 +2,13 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>MathBot GOD</title>
+<title>MathBot ULTRA GOD</title>
+
 <style>
 body{
 margin:0;
 font-family:Arial;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+background:linear-gradient(135deg,#0f2027,#2c5364);
 color:white;
 display:flex;
 justify-content:center;
@@ -26,38 +27,20 @@ box-shadow:0 0 30px #000;
 
 h1{text-align:center;}
 
-.top{
-display:flex;
-justify-content:center;
-gap:10px;
-margin-bottom:10px;
-flex-wrap:wrap;
-}
-
-button{
-padding:8px 14px;
-border:none;
-border-radius:10px;
-background:#333;
-color:white;
-cursor:pointer;
-}
-
-button.active{background:#00ff88;color:black;}
-
 #display{
-font-size:24px;
 text-align:center;
-margin:10px;
+font-size:28px;
+margin:15px;
 }
 
 #input{
 width:100%;
 padding:15px;
-font-size:20px;
+font-size:22px;
 border-radius:10px;
 border:none;
 margin-bottom:10px;
+text-align:center;
 }
 
 .keypad{
@@ -67,164 +50,190 @@ gap:10px;
 }
 
 .keypad button{
-font-size:18px;
 padding:15px;
+font-size:18px;
 background:#222;
+border:none;
+border-radius:10px;
+color:white;
+cursor:pointer;
 }
 
-.keypad button:hover{background:#00ff88;color:black;}
+.keypad button:hover{
+background:#00ff88;
+color:black;
+}
 
-#info{
+#stats{
 text-align:center;
 margin-top:10px;
 }
 
+.flash{
+animation:flash 0.2s;
+}
+
+@keyframes flash{
+0%{background:#0f0;}
+100%{background:#111;}
+}
+
+.error{
+animation:error 0.2s;
+}
+
+@keyframes error{
+0%{background:#f00;}
+100%{background:#111;}
+}
 </style>
 </head>
+
 <body>
 
 <div id="app">
 
-<h1>🔥 MathBot GOD</h1>
+<h1>🔥 ULTRA GOD</h1>
 
-<div class="top">
-<button onclick="setMode('free')" class="active">Libre</button>
-<button onclick="setMode('game')">Jeu</button>
-</div>
-
-<div class="top">
-<button onclick="setLevel('easy')">Easy</button>
-<button onclick="setLevel('medium')">Medium</button>
-<button onclick="setLevel('hard')">Hard</button>
-<button onclick="setLevel('god')">🔥 GOD</button>
-</div>
-
-<div id="display">Tape un calcul</div>
+<div id="display">Ready...</div>
 
 <input id="input" readonly>
 
 <div class="keypad">
-<button onclick="press('7')">7</button>
-<button onclick="press('8')">8</button>
-<button onclick="press('9')">9</button>
-<button onclick="press('/')">/</button>
+<button onclick="p('7')">7</button>
+<button onclick="p('8')">8</button>
+<button onclick="p('9')">9</button>
+<button onclick="p('/')">/</button>
 
-<button onclick="press('4')">4</button>
-<button onclick="press('5')">5</button>
-<button onclick="press('6')">6</button>
-<button onclick="press('*')">*</button>
+<button onclick="p('4')">4</button>
+<button onclick="p('5')">5</button>
+<button onclick="p('6')">6</button>
+<button onclick="p('*')">*</button>
 
-<button onclick="press('1')">1</button>
-<button onclick="press('2')">2</button>
-<button onclick="press('3')">3</button>
-<button onclick="press('-')">-</button>
+<button onclick="p('1')">1</button>
+<button onclick="p('2')">2</button>
+<button onclick="p('3')">3</button>
+<button onclick="p('-')">-</button>
 
-<button onclick="press('0')">0</button>
-<button onclick="press('.')">.</button>
-<button onclick="press('(')">(</button>
-<button onclick="press(')')">)</button>
+<button onclick="p('0')">0</button>
+<button onclick="p('.')">.</button>
+<button onclick="p('(')">(</button>
+<button onclick="p(')')">)</button>
 
-<button onclick="clearInput()">C</button>
+<button onclick="clearI()">C</button>
 <button onclick="validate()">OK</button>
-<button onclick="press('+')">+</button>
+<button onclick="p('+')">+</button>
 <button onclick="back()">⌫</button>
 </div>
 
-<div id="info"></div>
+<div id="stats"></div>
 
 </div>
 
 <script>
 
-let mode="free";
-let level="easy";
-let answer=0;
 let score=0;
+let combo=0;
+let coins=Number(localStorage.getItem("coins")||0);
+let best=Number(localStorage.getItem("best")||0);
+
+let answer=0;
 let time=10;
-let timer;
+let speed=1000;
 
-// ===== INPUT =====
-function press(v){
-document.getElementById("input").value+=v;
+function p(v){input.value+=v;}
+function clearI(){input.value="";}
+function back(){input.value=input.value.slice(0,-1);}
+
+function calc(e){
+try{return Function("return "+e)();}
+catch{return null;}
 }
 
-function clearInput(){
-document.getElementById("input").value="";
+function newQ(){
+let a=Math.floor(Math.random()*50)+1;
+let b=Math.floor(Math.random()*50)+1;
+let ops=["+","-","*"];
+let op=ops[Math.floor(Math.random()*ops.length)];
+
+if(score>10) op="/";
+
+if(op==="/"){
+b=Math.floor(Math.random()*9)+1;
+a=b*(Math.floor(Math.random()*10)+1);
 }
 
-function back(){
-let i=document.getElementById("input");
-i.value=i.value.slice(0,-1);
+answer=calc(a+op+b);
+
+display.textContent=a+" "+op+" "+b;
+clearI();
 }
 
-// ===== MODES =====
-function setMode(m){
-mode=m;
-score=0;
-clearInterval(timer);
-document.getElementById("info").textContent="";
-if(mode==="game") startGame();
-}
+function start(){
+newQ();
 
-// ===== LEVEL =====
-function setLevel(l){
-level=l;
-}
-
-// ===== CALCUL =====
-function calculate(expr){
-try{
-return Function("return "+expr)();
-}catch{return null;}
-}
-
-// ===== GAME =====
-function startGame(){
-time=10;
-nextQuestion();
-
-timer=setInterval(()=>{
+setInterval(()=>{
 time--;
-document.getElementById("info").textContent="⏱ "+time+"s | Score: "+score;
+stats.textContent="⏱ "+time+" | Score "+score+" | Combo "+combo+" | 💰 "+coins;
+
 if(time<=0){
-clearInterval(timer);
-alert("FIN SCORE: "+score);
+end();
 }
 },1000);
 }
 
-function nextQuestion(){
-let a=Math.floor(Math.random()*10);
-let b=Math.floor(Math.random()*10);
-
-if(level==="medium"){a*=2; b*=2;}
-if(level==="hard"){a=Math.floor(Math.random()*50); b=Math.floor(Math.random()*50);}
-if(level==="god"){a=Math.floor(Math.random()*100); b=Math.floor(Math.random()*100);}
-
-answer=a+b;
-document.getElementById("display").textContent=a+" + "+b;
-clearInput();
-}
-
-// ===== VALIDATE =====
 function validate(){
-let val=document.getElementById("input").value;
+let val=Number(input.value);
 
-if(mode==="free"){
-let r=calculate(val);
-document.getElementById("display").textContent="Résultat: "+r;
-clearInput();
-return;
-}
+if(val===answer){
 
-if(Number(val)===answer){
-score++;
-nextQuestion();
+// combo
+combo++;
+let gain=1+combo;
+
+// crit
+if(combo>=3) gain*=2;
+
+score+=gain;
+coins+=gain;
+
+display.classList.add("flash");
+setTimeout(()=>display.classList.remove("flash"),200);
+
+// speed up
+if(speed>300) speed-=10;
+
+time+=1;
+
+newQ();
+
 }else{
-alert("❌ Faux !");
-nextQuestion();
+
+combo=0;
+
+display.classList.add("error");
+setTimeout(()=>display.classList.remove("error"),200);
+
+time-=2;
 }
+
+clearI();
 }
+
+function end(){
+if(score>best){
+best=score;
+localStorage.setItem("best",best);
+}
+
+localStorage.setItem("coins",coins);
+
+alert("🔥 FIN\nScore: "+score+"\nBest: "+best+"\nCoins: "+coins);
+
+location.reload();
+}
+
+start();
 
 </script>
 
